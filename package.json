@@ -6,19 +6,34 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "npx tsc --noEmit; next lint",
+    "test": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:ui": "vitest --ui"
   },
   "dependencies": {
+    "@vanilla-extract/css": "^1.14.0",
+    "@vanilla-extract/next-plugin": "^2.3.2",
+    "@vanilla-extract/sprinkles": "^1.6.1",
+    "clsx": "^2.0.0",
+    "inversify": "^6.0.2",
+    "next": "14.0.3",
     "react": "^18",
     "react-dom": "^18",
-    "next": "14.0.3"
+    "reflect-metadata": "^0.1.13",
+    "the-new-css-reset": "^1.11.2"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@types/mock-fs": "^4.13.4",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@vitest/coverage-v8": "^0.34.6",
     "eslint": "^8",
-    "eslint-config-next": "14.0.3"
+    "eslint-config-next": "14.0.3",
+    "mock-fs": "^5.2.0",
+    "prettier": "^3.1.0",
+    "typescript": "^5",
+    "vitest": "^0.34.6"
   }
 }
