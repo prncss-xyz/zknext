@@ -7,21 +7,9 @@ jobs:
   unit-test:
     runs-on: ubuntu-22.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '21'
-          cache: 'pnpm'
-
-      - name: Install dependencies
-        run: pnpm install
-
+      - uses: ./.github/workflows/workflow-2.yml
       - name: Run tests
         run: pnpm run test:coverage
-
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         with:
