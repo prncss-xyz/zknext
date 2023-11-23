@@ -1,8 +1,6 @@
 name: Pnpm
 on:
-  push:
-    branches:
-      - main
+  workflow_call:
 jobs:
   unit-test:
     runs-on: ubuntu-22.04
