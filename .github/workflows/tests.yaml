@@ -7,7 +7,7 @@ jobs:
   unit-test:
     runs-on: ubuntu-22.04
     steps:
-      - uses: ./.github/workflows/pnpm.yml
+      - uses: ./.github/workflows/pnpm.yaml
       - name: Run tests
         run: pnpm run test:coverage
       - name: Upload coverage reports to Codecov
