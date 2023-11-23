@@ -1,6 +1,9 @@
 import { Box } from "@/components/box";
 import { getNotes } from "@/server/actions";
 
+// this prevents scanning notes directory at build time
+export const dynamic = "force-dynamic";
+
 export default async function Page({}: {}) {
   const notes = await getNotes();
   return (
