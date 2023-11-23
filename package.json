@@ -1,6 +1,11 @@
 {
   "name": "zknext",
-  "version": "0.1.15",
+  "version": "0.1.16",
+  "bin": "bin.sh",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/prncss-xyz/zknext/"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
