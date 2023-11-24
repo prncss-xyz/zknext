@@ -7,14 +7,5 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v2
-        with:
-          version: 8
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "21"
-          registry-url: https://registry.npmjs.org
-          cache: "pnpm"
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
+      - uses: ./.github/actions/build
       - run: pnpm publish --access public --no-git-checks
