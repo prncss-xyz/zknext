@@ -3,7 +3,15 @@ const withVanillaExtract = createVanillaExtractPlugin();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: "standalone",
+  async redirects() {
+    return [
+      {
+        source: "/",
+        destination: "/notes",
+        permanent: false,
+      },
+    ];
+  },
 };
 
 module.exports = withVanillaExtract(nextConfig);
