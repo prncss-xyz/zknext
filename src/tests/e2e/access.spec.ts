@@ -6,7 +6,7 @@ test("on localhost, should redirect / to /notes", async ({ page }) => {
   await page.waitForURL(`http://localhost:${PORT}/notes`);
 });
 
-test("from any host other than localhost, should redirect any page to /denied", async ({
+test("from any other host than localhost, should redirect any page to /denied", async ({
   page,
 }) => {
   await page.goto(`http://127.0.0.1:${PORT}/anything`);

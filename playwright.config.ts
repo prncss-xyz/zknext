@@ -16,14 +16,15 @@ const projects = [
       ...devices["Pixel 5"],
     },
   },
-]
+];
 
-if (!process.env.SKIP_MACOS) projects.push( { name: "Mobile Safari", use: devices["iPhone 12"] })
+if (!process.env.SKIP_MACOS)
+  projects.push({ name: "Mobile Safari", use: devices["iPhone 12"] });
 
 const config: PlaywrightTestConfig = {
   timeout: 30 * 1000,
   testDir: path.join(__dirname, "src/tests/e2e"),
-  retries: 2,
+  retries: 0,
   outputDir: "test-results/",
   webServer: {
     command: "npm run dev",
@@ -35,7 +36,7 @@ const config: PlaywrightTestConfig = {
     baseURL,
     trace: "retry-with-trace",
   },
-  projects
+  projects,
 };
 
 export default config;

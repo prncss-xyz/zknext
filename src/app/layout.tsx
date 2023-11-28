@@ -29,7 +29,7 @@ export default async function RootLayout({
         my={{ xs: 10, md: 20 }}
         display="flex"
         flexDirection="row"
-        justifyContent="center"
+        justifyContent="flex-start"
       >
         {children}
       </Box>

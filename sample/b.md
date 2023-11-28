@@ -1,0 +1,3 @@
+contents b
+
+[[a.md]]
