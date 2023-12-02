@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 function Entry({ note }: { note: NoteData }) {
   return (
     <Link href={`/notes/${note.id}`}>
-      {note.title ? note.title : <i>note.id</i>}
+      {note.title ? note.title : <Box fontFamily="monospace">note.id</Box>}
     </Link>
   );
 }

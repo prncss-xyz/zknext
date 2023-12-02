@@ -1,10 +1,11 @@
-import { Errable } from "@/server/interfaces";
 import { NoteData } from "@/server/notes/interface";
+import { Errable, fromSuccess } from "@/server/utils/errable";
 import clsx from "clsx";
-import { extname } from "path";
+import { dirname, extname, relative } from "node:path";
 import rehypeRaw from "rehype-raw";
 import breaks from "remark-breaks";
 import emoji from "remark-emoji";
+import remarkFrontmatter from "remark-frontmatter";
 import gfm from "remark-gfm";
 import remarkParse from "remark-parse";
 import remarkRehype from "remark-rehype";
@@ -15,21 +16,27 @@ import smartyPants from "remark-smartypants";
 import wikiLink from "remark-wiki-link";
 import { unified } from "unified";
 import { visit } from "unist-util-visit";
+import * as yaml from "js-yaml";
 
 const defaultExtension = ".md";
 
-type ITransform = {
-  prefix: string;
-  links: Errable<NoteData>[];
-} | null;
+export interface ITransform {
+  id: string;
+  idToMeta: Map<string, Errable<NoteData>>;
+}
 
-function transform(opts: ITransform) {
+function transform(opts: ITransform | null) {
   return async function (tree: any) {
-    if (opts) {
-      let i = 0;
+    if (!opts) return;
+    const { idToMeta, id } = opts;
+    const dir = dirname(id);
+    const { links } = fromSuccess(idToMeta.get(id)!);
+    let i = 0;
+    if (idToMeta) {
       visit(tree, "wikiLink", (node: any) => {
-        const link = opts.links[i++];
-        if (link._tag === "failure") {
+        const link_ = links[i++];
+        const link = idToMeta.get(link_.target);
+        if (!link || link._tag === "failure") {
           node.data.hProperties.className = clsx({
             internal: true,
             broken: true,
@@ -41,22 +48,21 @@ function transform(opts: ITransform) {
           internal: true,
           titled: result.title,
         });
-        node.data.alias = result.title || result.id;
-        node.data.hProperties.href = opts.prefix + result.id;
-        node.data.hChildren = [
-          { type: "text", value: result.title || result.id },
-        ];
+        const value = result.title || result.id;
+        node.data.alias = value;
+        node.data.hProperties.href = relative(dir, result.id);
+        node.data.hChildren = [{ type: "text", value }];
       });
     }
   };
 }
 
 // we need to export this function instead of raw constant for processor to work both on client and server
-export function getProcessor(opts: ITransform) {
+export function getProcessor(opts: ITransform | null) {
   return (
-    // @ts-ignore
     unified()
       .use(remarkParse)
+      .use(remarkFrontmatter)
       .use(transform, opts)
       // @ts-ignore
       .use(wikiLink, {
@@ -73,4 +79,27 @@ export function getProcessor(opts: ITransform) {
       .use(remarkRehype, { allowDangerousHtml: true })
       .use(rehypeRaw)
   );
+}
+
+function analyse(tree: any) {
+  const node = tree.children.find((n: any) => n.type === "yaml");
+  return (node as any)?.value as string | undefined;
+}
+
+function spit() {
+  // @ts-ignore
+  this.Compiler = analyse;
+}
+
+const matterProcessor = unified()
+  .use(remarkParse)
+  .use(remarkFrontmatter)
+  .use(spit);
+
+export function getMatter(md: string) {
+  const matter = matterProcessor.processSync(md).toString();
+  if (!matter) {
+    return null;
+  }
+  return yaml.load(matter);
 }

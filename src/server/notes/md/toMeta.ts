@@ -5,8 +5,9 @@ import { remove } from "unist-util-remove";
 import { wordsCount } from "words-count";
 import { Element, Root } from "hast";
 import { normalizePath } from "@/utils/path";
-import { getProcessor } from "@/utils/processMD";
-import { Failure, Success } from "../interfaces";
+import { getMatter, getProcessor } from "./processor";
+import { Failure, Success } from "@/server/utils/errable";
+import { FileData } from "../interface";
 
 interface RawLink {
   context: string;
@@ -83,20 +84,22 @@ export interface AnalyzeMDOpts {
   prefix: string;
 }
 
-export async function analyseMD(raw: string) {
-  let result: AnalyzeResult;
-  try {
-    const processor = getProcessor(null).use(spit);
-    result = (await processor.process(raw)).result as AnalyzeResult;
-  } catch (err) {
-    return new Failure("parsing error");
-  }
+export async function mdToMeta(fileData: FileData, raw: string) {
+  const processor = getProcessor(null).use(spit);
+  const result = (await processor.process(raw)).result as AnalyzeResult;
   const { title, wordcount, links: links_ } = result;
   const links = links_.map((link) => ({
     target: normalizePath(link.target),
     context: link.context,
   }));
+  let matter: unknown;
+  try {
+    matter = getMatter(raw);
+  } catch (err) {
+    return new Failure("syntax error (preamble)");
+  }
   return new Success({
+    ...fileData,
     title,
     wordcount,
     links,

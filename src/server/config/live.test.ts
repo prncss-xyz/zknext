@@ -17,16 +17,16 @@ describe("configLive", () => {
     afterAll(() => {
       process.env.ZK_NOTEBOOK_DIR = NOTEBOOK_DIR;
     });
-    test("should get notebookDir from env", async () => {
+    it("should get notebookDir from env", async () => {
       process.env.ZK_NOTEBOOK_DIR = "dir";
       const config = getTestContainer();
-      const configValue = await config.value;
+      const configValue = await config.getConfig();
       expect(configValue.notebookDir).toBe("dir");
     });
-    test("should throw when env is not set", async () => {
+    it("should throw when env is not set", async () => {
       delete process.env.ZK_NOTEBOOK_DIR;
       const config = getTestContainer();
-      await expect(() => config.value).rejects.toThrowError(
+      await expect(() => config.getConfig()).rejects.toThrowError(
         "ZK_NOTEBOOK_DIR not set",
       );
     });

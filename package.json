@@ -16,6 +16,7 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@vanilla-extract/css": "^1.14.0",
     "@vanilla-extract/next-plugin": "^2.3.2",
     "@vanilla-extract/sprinkles": "^1.6.1",
@@ -23,6 +24,7 @@
     "hast-util-to-html": "^8.0.4",
     "hast-util-to-text": "^3.1.2",
     "inversify": "^6.0.2",
+    "js-yaml": "^4.1.0",
     "next": "14.0.3",
     "react": "^18",
     "react-dom": "^18",
@@ -36,6 +38,7 @@
     "rehype-stringify": "^9.0.3",
     "remark-breaks": "^3.0.3",
     "remark-emoji": "^3.1.2",
+    "remark-frontmatter": "^5.0.0",
     "remark-gfm": "^3.0.1",
     "remark-parse": "^10.0.2",
     "remark-rehype": "^10.1.0",

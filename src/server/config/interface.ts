@@ -1,8 +1,7 @@
-interface ResolvedConfig {
+export interface ConfigData {
   notebookDir: string;
 }
-
 export interface IConfig {
-  readonly value: Promise<ResolvedConfig>;
+  getConfig: () => Promise<ConfigData>;
 }
-export const ConfigType = Symbol.for("Config")
+export const ConfigType = Symbol.for("Config");

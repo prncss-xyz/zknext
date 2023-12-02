@@ -1,0 +1,58 @@
+import { fromFailure, fromSuccess } from "@/server/utils/errable";
+import { mdToMeta } from "./toMeta";
+
+describe("analyseMD", () => {
+  const fileData = { id: "a.md", mtime: new Date(0) };
+  it("should find the title when there is one", async () => {
+    const res_ = await mdToMeta(fileData, "# title");
+    expect(res_._tag).toBe("success");
+    const res = fromSuccess(res_);
+    expect(res.title).toEqual("title");
+  });
+  it("should return null when there is no title", async () => {
+    const res_ = await mdToMeta(fileData, "title");
+    expect(res_._tag).toBe("success");
+    const res = fromSuccess(res_);
+    expect(res.title).toEqual(null);
+  });
+  it("should return failure when contents are not parsable", async () => {
+    const file = `---
+!: tasdfrue
+---
+`;
+    const res = await mdToMeta(fileData, file);
+    expect(res._tag).toBe("failure");
+  });
+  it("should find the links", async () => {
+    const res_ = await mdToMeta(fileData, "# title");
+    expect(res_._tag).toBe("success");
+    const res = fromSuccess(res_);
+    expect(res.links).toEqual([]);
+  });
+  it("should return null when there is no title", async () => {
+    const res_ = await mdToMeta(
+      fileData,
+      `---
+---
+
+[[a]]
+
+pre
+[[b.md]]
+post
+
+`,
+    );
+    expect(res_._tag).toBe("success");
+    const res = fromSuccess(res_);
+    expect(res.links.length).toBe(2);
+    expect(res.links[0]).toContain({
+      target: "a.md",
+    });
+    expect(res.links[1]).toContain({
+      target: "b.md",
+    });
+    expect(res.links[1].context).toMatch(/^pre/);
+    expect(res.links[1].context).toMatch(/post$/);
+  });
+});

@@ -21,7 +21,7 @@ describe("file tests", () => {
   });
 
   describe("getFiles", () => {
-    test("should list files recursively", async () => {
+    it("should list files recursively", async () => {
       let files: string[] = [];
       for await (const file of getFiles(".")) {
         files.push(file);
@@ -32,7 +32,7 @@ describe("file tests", () => {
   });
 
   describe("exists", () => {
-    test("should test if a file exists", async () => {
+    it("should test if a file exists", async () => {
       expect(await exists("1")).toBe(true);
       expect(await exists("0")).toBe(false);
     });

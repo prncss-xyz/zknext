@@ -1,5 +1,5 @@
 import { Box } from "@/components/box";
-import { MD } from "@/components/md";
+import { NoteContents } from "@/components/noteContents";
 import { getNote } from "@/server/actions";
 
 // this prevents scanning notes directory at build time
@@ -16,7 +16,7 @@ function Failure({ message }: { message: string }) {
 export async function Note({ id }: { id: string }) {
   const note = await getNote(id);
   if (note._tag === "failure") return <Failure message={note.message} />;
-  return <MD contents={note.result.contents} prefix="/notes/" />;
+  return <NoteContents id={id} />;
 }
 
 export default async function Page({

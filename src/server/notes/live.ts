@@ -6,59 +6,62 @@ import type { IConfig } from "../config/interface";
 import { getFiles } from "../utils/files";
 import path from "path/posix";
 import { readFile, stat } from "node:fs/promises";
-import { Errable, Failure, Success } from "../interfaces";
-import { analyseMD } from "./analyseMD";
+import { Failure, Errable } from "../utils/errable";
+import { mdToHTML } from "./md/toHTML";
+import { mdToMeta } from "./md/toMeta";
 
 @injectable()
 export class NotesLive implements INotes {
   @inject(ConfigType) private config!: IConfig;
-  private notes: Promise<Map<string, Errable<NoteData>>>;
-  constructor() {
-    this.notes = this._getNotes();
+  public async getNote(id: string) {
+    return (await this.getIdToMeta()).get(id) ?? new Failure("nofile");
+  }
+  public async getHTML(id: string, document: boolean) {
+    const idToMeta = await this.getIdToMeta();
+    const metaRequest = idToMeta.get(id);
+    if (!metaRequest) return new Failure("nofile");
+    if (metaRequest._tag === "failure") return metaRequest;
+    const { notebookDir } = await this.config.getConfig();
+    const fullPath = path.join(notebookDir, id);
+    const contents = await readFile(fullPath, "utf8");
+    return await mdToHTML(contents, {
+      id,
+      idToMeta,
+      document,
+      untitled: "untitled",
+    });
   }
   public async getNotes() {
     const entries: NoteData[] = [];
-    for (const [_, note] of await this.notes) {
+    for (const [_, note] of await this.getIdToMeta()) {
       if (note._tag === "failure") continue;
       entries.push(note.result);
     }
     return entries;
   }
-  private async _getNotes() {
+  private async getIdToMeta() {
+    this.idToMeta ??= await this.scanDir();
+    return this.idToMeta;
+  }
+  private idToMeta: Map<string, Errable<NoteData>> | undefined;
+  private async scanDir() {
     const resolvedNotes = new Map<string, Errable<NoteData>>();
-    const { notebookDir } = await this.config.value;
+    const { notebookDir } = await this.config.getConfig();
     for await (const id of getFiles(notebookDir)) {
       const ext = path.extname(id);
       if (ext !== ".md") continue;
-      const note = await this._getNote(id);
+      const note = await this.readNoteMeta(id);
       resolvedNotes.set(id, note);
     }
     return resolvedNotes;
   }
-  public async getNote(id: string) {
-    return (await this.notes).get(id) ?? new Failure("nofile");
-  }
-  public async getLinks(id: string) {
-    const note = await this.getNote(id);
-    if (note._tag === "failure") return [];
-    const links = await Promise.all(
-      note.result.links.map(({ target }) => this.getNote(target)),
-    );
-    return links;
-  }
-  private async _getNote(id: string) {
-    const { notebookDir } = await this.config.value;
+  private async readNoteMeta(id: string) {
+    const { notebookDir } = await this.config.getConfig();
     const fullPath = path.join(notebookDir, id);
-    const contents = await readFile(fullPath, "utf8");
-    const analysed = await analyseMD(contents);
-    if (analysed._tag === "failure") return analysed;
-    const { result } = analysed;
+    // this is solely called during initial scan,
+    // therefore we assume the file exists
     const { mtime } = await stat(fullPath);
-    return new Success({
-      id,
-      mtime,
-      contents,
-      ...result,
-    });
+    const contents = await readFile(fullPath, "utf8");
+    return await mdToMeta({ id, mtime }, contents);
   }
 }

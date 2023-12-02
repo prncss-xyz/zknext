@@ -3,11 +3,13 @@ import { ConfigType, IConfig } from "../config/interface";
 import { INotes, NotesType } from "./interface";
 import { NotesLive } from "./live";
 import mock from "mock-fs";
-import { Failure } from "../interfaces";
+import { Errable, Failure, fromFailure, fromSuccess } from "../utils/errable";
 
 @injectable()
 export class ConfigMock implements IConfig {
-  public readonly value = Promise.resolve({ notebookDir: "dir" });
+  async getConfig() {
+    return { notebookDir: "dir" };
+  }
 }
 
 function getContainerNotes() {
@@ -18,26 +20,28 @@ function getContainerNotes() {
 }
 
 describe("notesLive", () => {
-  beforeEach(() => {
+  beforeAll(() => {
     mock({
       dir: {
-        "1.md": mock.file({ content: "1", mtime: new Date(1) }),
+        "1.md": mock.file({ content: "# jkl\n\nasdf", mtime: new Date(1) }),
         a: {
           "2.md": mock.file({ content: "2", mtime: new Date(2) }),
           "3.xx": mock.file({ content: "3", mtime: new Date(3) }),
+          "4.md": mock.file({
+            content: "---\n!:error\n---",
+            mtime: new Date(4),
+          }),
         },
       },
     });
   });
-  afterEach(() => {
+  afterAll(() => {
     mock.restore();
   });
   describe("getNotes", () => {
-    test("should list notes from dir", async () => {
+    it("should list notes from dir", async () => {
       const notes = getContainerNotes();
-      console.log(1);
       const entries = await notes.getNotes();
-      console.log(2);
       expect(entries.length).toBe(2);
       expect(entries[0].id).toBe("1.md");
       expect(entries[0].mtime).toEqual(new Date(1));
@@ -46,9 +50,30 @@ describe("notesLive", () => {
     });
   });
   describe("getNote", () => {
-    test.skip("should fail when there is no file", async () => {
+    it("should fail when there is no file", async () => {
       const notes = getContainerNotes();
       expect(await notes.getNote("999.md")).toEqual(new Failure("nofile"));
+    });
+  });
+  describe("getHTML", () => {
+    const notes = getContainerNotes();
+    it("should fail when there is no file", async () => {
+      expect(await notes.getHTML("999.md", true)).toEqual(
+        new Failure("nofile"),
+      );
+    });
+    it("should parse file to HTML document", async () => {
+      const html = fromSuccess(await notes.getHTML("1.md", true));
+      expect(html).toMatch("<title>jkl</title>");
+      expect(html).toMatch("<p>asdf</p>");
+    });
+    it("should report syntax error", async () => {
+      const message = fromFailure(await notes.getHTML("a/4.md", true));
+      expect(message).toBe("syntax error (preamble)");
+    });
+    it("should report nofile error", async () => {
+      const message = fromFailure(await notes.getHTML("4.md", true));
+      expect(message).toBe("nofile");
     });
   });
 });
