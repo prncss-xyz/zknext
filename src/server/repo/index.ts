@@ -1,18 +1,17 @@
 import { injectable, inject } from "inversify";
 import "reflect-metadata";
-import { INotes, NoteData } from "./interface";
-import { ConfigType } from "../config/interface";
-import type { IConfig } from "../config/interface";
-import { getFiles } from "../utils/files";
+import { ConfigType, IRepo, NoteType } from "../interface";
+import type { IConfig, INote } from "../interface";
+import { getFiles } from "./files";
 import path from "path/posix";
 import { readFile, stat } from "node:fs/promises";
-import { Failure, Errable } from "../utils/errable";
-import { mdToHTML } from "./md/toHTML";
-import { mdToMeta } from "./md/toMeta";
+import { NoteData } from "@/core";
+import { Errable, Failure } from "@/utils/errable";
 
 @injectable()
-export class NotesLive implements INotes {
+export class RepoLive implements IRepo {
   @inject(ConfigType) private config!: IConfig;
+  @inject(NoteType) private note!: INote;
   public async getNote(id: string) {
     return (await this.getIdToMeta()).get(id) ?? new Failure("nofile");
   }
@@ -24,12 +23,15 @@ export class NotesLive implements INotes {
     const { notebookDir } = await this.config.getConfig();
     const fullPath = path.join(notebookDir, id);
     const contents = await readFile(fullPath, "utf8");
-    return await mdToHTML(contents, {
-      id,
-      idToMeta,
-      document,
-      untitled: "untitled",
-    });
+    return await this.note.getHTML(
+      {
+        id,
+        idToMeta,
+        document,
+        untitled: "untitled",
+      },
+      contents,
+    );
   }
   public async getNotes() {
     const entries: NoteData[] = [];
@@ -62,6 +64,6 @@ export class NotesLive implements INotes {
     // therefore we assume the file exists
     const { mtime } = await stat(fullPath);
     const contents = await readFile(fullPath, "utf8");
-    return await mdToMeta({ id, mtime }, contents);
+    return await this.note.getMeta({ id, mtime }, contents);
   }
 }

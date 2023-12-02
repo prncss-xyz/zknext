@@ -1,22 +1,9 @@
 import rehypeStringify from "rehype-stringify";
 import rehypeFormat from "rehype-format";
 import rehypeDocument from "rehype-document";
-import { Errable, fromSuccess, Success } from "@/server/utils/errable";
-import { NoteData } from "../interface";
 import { getProcessor } from "./processor";
-
-interface IMDToHTML {
-  /** id of note being converted */
-  id: string;
-  /** parsing metadata */
-  idToMeta: Map<string, Errable<NoteData>>;
-  /** wether to create a documnet (true) or a fragment (false) */
-  document: boolean;
-  /** string to use when there is no title */
-  untitled: string;
-}
-
-type Opts = IMDToHTML;
+import { fromSuccess, Success } from "@/utils/errable";
+import { INoteGetHTMLOpts } from "../interface";
 
 /**
  * converts markdown to html, either a fragment (if title is undefied)
@@ -26,7 +13,7 @@ type Opts = IMDToHTML;
  * @param opts: see interface definition
  * @returns parsed html
  */
-export async function mdToHTML(md: string, opts: Opts) {
+export async function getHTML(opts: INoteGetHTMLOpts, md: string) {
   let html: string;
   let title = "";
   if (opts.document) {

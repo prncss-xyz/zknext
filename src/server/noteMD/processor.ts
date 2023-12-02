@@ -1,5 +1,3 @@
-import { NoteData } from "@/server/notes/interface";
-import { Errable, fromSuccess } from "@/server/utils/errable";
 import clsx from "clsx";
 import { dirname, extname, relative } from "node:path";
 import rehypeRaw from "rehype-raw";
@@ -17,6 +15,8 @@ import wikiLink from "remark-wiki-link";
 import { unified } from "unified";
 import { visit } from "unist-util-visit";
 import * as yaml from "js-yaml";
+import { NoteData } from "@/core";
+import { Errable, fromSuccess } from "@/utils/errable";
 
 const defaultExtension = ".md";
 

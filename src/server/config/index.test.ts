@@ -1,6 +1,6 @@
 import { Container } from "inversify";
-import { IConfig, ConfigType } from "./interface";
-import { ConfigLive } from "./live";
+import { ConfigLive } from ".";
+import { IConfig, ConfigType, INote, NoteType } from "../interface";
 
 function getTestContainer() {
   const testContainer = new Container();

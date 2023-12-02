@@ -6,8 +6,12 @@ import { wordsCount } from "words-count";
 import { Element, Root } from "hast";
 import { normalizePath } from "@/utils/path";
 import { getMatter, getProcessor } from "./processor";
-import { Failure, Success } from "@/server/utils/errable";
-import { FileData } from "../interface";
+import { Failure, Success } from "@/utils/errable";
+
+interface FileData {
+  id: string;
+  mtime: Date;
+}
 
 interface RawLink {
   context: string;
@@ -84,7 +88,7 @@ export interface AnalyzeMDOpts {
   prefix: string;
 }
 
-export async function mdToMeta(fileData: FileData, raw: string) {
+export async function getMeta(fileData: FileData, raw: string) {
   const processor = getProcessor(null).use(spit);
   const result = (await processor.process(raw)).result as AnalyzeResult;
   const { title, wordcount, links: links_ } = result;

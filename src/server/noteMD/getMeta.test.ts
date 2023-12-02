@@ -1,16 +1,16 @@
-import { fromFailure, fromSuccess } from "@/server/utils/errable";
-import { mdToMeta } from "./toMeta";
+import { fromSuccess } from "@/utils/errable";
+import { getMeta } from "./getMeta";
 
 describe("analyseMD", () => {
   const fileData = { id: "a.md", mtime: new Date(0) };
   it("should find the title when there is one", async () => {
-    const res_ = await mdToMeta(fileData, "# title");
+    const res_ = await getMeta(fileData, "# title");
     expect(res_._tag).toBe("success");
     const res = fromSuccess(res_);
     expect(res.title).toEqual("title");
   });
   it("should return null when there is no title", async () => {
-    const res_ = await mdToMeta(fileData, "title");
+    const res_ = await getMeta(fileData, "title");
     expect(res_._tag).toBe("success");
     const res = fromSuccess(res_);
     expect(res.title).toEqual(null);
@@ -20,17 +20,17 @@ describe("analyseMD", () => {
 !: tasdfrue
 ---
 `;
-    const res = await mdToMeta(fileData, file);
+    const res = await getMeta(fileData, file);
     expect(res._tag).toBe("failure");
   });
   it("should find the links", async () => {
-    const res_ = await mdToMeta(fileData, "# title");
+    const res_ = await getMeta(fileData, "# title");
     expect(res_._tag).toBe("success");
     const res = fromSuccess(res_);
     expect(res.links).toEqual([]);
   });
   it("should return null when there is no title", async () => {
-    const res_ = await mdToMeta(
+    const res_ = await getMeta(
       fileData,
       `---
 ---

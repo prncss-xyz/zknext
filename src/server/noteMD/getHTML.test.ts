@@ -1,7 +1,7 @@
-import { Errable, fromFailure, fromSuccess } from "@/server/utils/errable";
-import { NoteData } from "../interface";
-import { mdToHTML } from "./toHTML";
-import { mdToMeta } from "./toMeta";
+import { Errable, fromSuccess, fromFailure } from "@/utils/errable";
+import { NoteData } from "@/core";
+import { getHTML } from "./getHTML";
+import { getMeta } from "./getMeta";
 
 describe("parseMD", async () => {
   const files = {
@@ -12,48 +12,48 @@ describe("parseMD", async () => {
   };
   const idToMeta = new Map<string, Errable<NoteData>>();
   for (const [k, v] of Object.entries(files)) {
-    idToMeta.set(k, await mdToMeta({ id: k, mtime: new Date(0) }, v));
+    idToMeta.set(k, await getMeta({ id: k, mtime: new Date(0) }, v));
   }
   it("should parse empty string", async () => {
     const res = fromSuccess(
-      await mdToHTML(files["a.md"], {
+      await getHTML({
         id: "a.md",
         idToMeta: idToMeta,
         document: false,
         untitled: "untitled",
-      }),
+      }, files["a.md"]),
     );
     expect(res).toEqual("");
   });
   it("should use untitled when there is no title", async () => {
-    const res = await mdToHTML(files["a.md"], {
+    const res = await getHTML({
       id: "a.md",
       idToMeta: idToMeta,
       document: true,
       untitled: "untitled_param",
-    });
+    }, files["a.md"]);
     expect(res._tag === "success");
     expect(fromSuccess(res)).toMatch("html");
     expect(fromSuccess(res)).toMatch("<title>untitled_param</title>");
   });
   it("should use title when there is one", async () => {
-    const res = await mdToHTML(files["b.md"], {
+    const res = await getHTML({
       id: "b.md",
       idToMeta: idToMeta,
       document: true,
       untitled: "untitled_param",
-    });
+    }, files["b.md"]);
     expect(res._tag === "success");
     expect(fromSuccess(res)).toMatch("html");
     expect(fromSuccess(res)).toMatch("<title>title b</title>");
   });
   it("should render links with appropriate class", async () => {
-    const res = await mdToHTML(files["c.md"], {
+    const res = await getHTML({
       id: "c.md",
       idToMeta: idToMeta,
       document: true,
       untitled: "untitled_param",
-    });
+    }, files["c.md"]);
     expect(res._tag === "success");
     const html = fromSuccess(res);
     expect(html).toMatch(`<a class="internal" href="a.md">a.md</a>`);
@@ -61,12 +61,12 @@ describe("parseMD", async () => {
     expect(html).toMatch(`<a class="internal broken" href="999.md">999.md</a>`);
   });
   it("should report syntax error", async () => {
-    const res = await mdToHTML(files["d.md"], {
+    const res = await getHTML({
       id: "d.md",
       idToMeta: idToMeta,
       document: true,
       untitled: "untitled_param",
-    });
+    }, files["d.md"]);
     expect(res._tag === "failure");
     const message = fromFailure(res);
     expect(message).toBe("syntax error (preamble)")

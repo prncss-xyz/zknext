@@ -1,8 +1,8 @@
 import { contents } from "./noteContents.css";
 import { Box } from "./box";
 import { getHTML } from "@/server/actions";
-import { fromSuccess } from "@/server/utils/errable";
 import { NoteHTML } from "./noteHTML";
+import { fromSuccess } from "@/utils/errable";
 
 export async function NoteContents({ id }: { id: string }) {
   const htmlRequest = await getHTML(id, false);
