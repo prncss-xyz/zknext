@@ -1,8 +1,8 @@
 import { Box } from "@/components/box";
 import { H1 } from "@/components/h1";
 import { Link } from "@/components/link";
+import { NoteData } from "@/core";
 import { getNotes } from "@/server/actions";
-import { NoteData } from "@/server/notes/interface";
 
 // this prevents scanning notes directory at build time
 export const dynamic = "force-dynamic";

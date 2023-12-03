@@ -1,5 +1,5 @@
 import { getHTML } from "@/server/actions";
-import { fromFailure, fromSuccess } from "@/server/utils/errable";
+import { fromFailure, fromSuccess } from "@/utils/errable";
 
 export async function GET(
   _: Request,
