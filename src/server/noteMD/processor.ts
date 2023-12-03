@@ -83,7 +83,7 @@ export function getProcessor(opts: ITransform | null) {
 
 function analyse(tree: any) {
   const node = tree.children.find((n: any) => n.type === "yaml");
-  return (node as any)?.value as string | undefined;
+  return ((node as any)?.value || "") as string;
 }
 
 function spit() {
@@ -96,10 +96,7 @@ const matterProcessor = unified()
   .use(remarkFrontmatter)
   .use(spit);
 
-export function getMatter(md: string) {
+export function getMatter(md: string, def: unknown) {
   const matter = matterProcessor.processSync(md).toString();
-  if (!matter) {
-    return null;
-  }
-  return yaml.load(matter);
+  return matter ? yaml.load(matter) : def;
 }

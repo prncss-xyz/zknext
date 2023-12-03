@@ -8,5 +8,6 @@ export interface NoteData {
   mtime: Date;
   title: string | null;
   wordcount: number;
+  tags: string[];
   links: Link[];
 }

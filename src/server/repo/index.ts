@@ -50,10 +50,10 @@ export class RepoLive implements IRepo {
     const resolvedNotes = new Map<string, Errable<NoteData>>();
     const { notebookDir } = await this.config.getConfig();
     for await (const id of getFiles(notebookDir)) {
-      const ext = path.extname(id);
-      if (ext !== ".md") continue;
-      const note = await this.readNoteMeta(id);
-      resolvedNotes.set(id, note);
+      if (this.note.shouldKeepFile(id)) {
+        const note = await this.readNoteMeta(id);
+        resolvedNotes.set(id, note);
+      }
     }
     return resolvedNotes;
   }

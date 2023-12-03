@@ -34,6 +34,7 @@ export interface INoteGetHTMLOpts {
   untitled: string;
 }
 export interface INote {
+  shouldKeepFile: (id: string) => boolean;
   getMeta(fileData: FileData, raw: string): Promise<Errable<NoteData>>;
   getHTML(opts: INoteGetHTMLOpts, raw: string): Promise<Errable<string>>;
 }

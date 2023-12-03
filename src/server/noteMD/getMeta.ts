@@ -7,6 +7,8 @@ import { Element, Root } from "hast";
 import { normalizePath } from "@/utils/path";
 import { getMatter, getProcessor } from "./processor";
 import { Failure, Success } from "@/utils/errable";
+import { fromPreamble } from "./fromPreamble";
+import { NoteData } from "@/core";
 
 interface FileData {
   id: string;
@@ -96,14 +98,21 @@ export async function getMeta(fileData: FileData, raw: string) {
     target: normalizePath(link.target),
     context: link.context,
   }));
-  let matter: unknown;
+  let preamble: unknown;
   try {
-    matter = getMatter(raw);
+    preamble = getMatter(raw, {});
   } catch (err) {
     return new Failure("syntax error (preamble)");
   }
+  let validated: ReturnType<typeof fromPreamble>;
+  try {
+    validated = fromPreamble(preamble);
+  } catch (err) {
+    return new Failure("invalid data (preamble)");
+  }
   return new Success({
     ...fileData,
+    ...validated,
     title,
     wordcount,
     links,

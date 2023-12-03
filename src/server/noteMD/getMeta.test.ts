@@ -10,7 +10,7 @@ describe("analyseMD", () => {
     expect(res.title).toEqual("title");
   });
   it("should return null when there is no title", async () => {
-    const res_ = await getMeta(fileData, "title");
+    const res_ = await getMeta(fileData, "title\n");
     expect(res_._tag).toBe("success");
     const res = fromSuccess(res_);
     expect(res.title).toEqual(null);
@@ -54,5 +54,20 @@ post
     });
     expect(res.links[1].context).toMatch(/^pre/);
     expect(res.links[1].context).toMatch(/post$/);
+  });
+  describe("preamble", () => {
+    it("should accept empty preamble", async () => {
+      const res_ = await getMeta(fileData, "");
+      expect(res_._tag).toEqual("success");
+    });
+    it("should pass preamble data", async () => {
+      const res_ = await getMeta(fileData, "---\ntags: a\n---\n");
+      expect(res_._tag).toEqual("success");
+      expect(fromSuccess(res_).tags).toEqual(["a"]);
+    });
+    it("should reject invalid data", async () => {
+      const res_ = await getMeta(fileData, "---\ntags: [0]\n---\n");
+      expect(res_._tag).toEqual("failure");
+    });
   });
 });
