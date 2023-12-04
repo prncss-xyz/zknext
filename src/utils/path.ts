@@ -1,10 +1,9 @@
-const sep = "/";
+export const sep = "/";
 
-export function upDirs(dir: string) {
+export function upDirs(id: string) {
   const res: string[] = [];
-  if (!dir) return [""];
-  const segments = dir.split(sep);
-  for (let i = 0; i <= segments.length; i++)
+  const segments = id.split(sep);
+  for (let i = 0; i < segments.length; i++)
     res.push(segments.slice(0, i).join(sep));
   return res;
 }
@@ -16,5 +15,5 @@ export function dirname(filepath: string) {
 }
 
 export function normalizePath(path: string) {
-  return path.replace(/\\/g, "/");
+  return path.replace(/\\/g, sep);
 }
