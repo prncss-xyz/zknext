@@ -1,4 +1,4 @@
-import { dirname, upDirs } from "../utils/path";
+import { contains, dirname, upDirs } from "../utils/path";
 
 // TODO: tag hierachy
 
@@ -28,10 +28,10 @@ export const nullNote: NoteData = {
 type NumberField = "wordcount";
 type DateField = "mtime";
 type LexicalField = "id";
-type ScalarField = NumberField | DateField | LexicalField;
+type OrderField = NumberField | DateField | LexicalField;
 
 interface Sort {
-  field: ScalarField;
+  field: OrderField;
   asc: boolean;
 }
 
@@ -74,7 +74,7 @@ export const nullQuery: Query = {
   kanban: "",
 };
 
-function testScalar<T>(value: T, query?: { lte?: T; gte?: T }) {
+function testOrder<T>(value: T, query?: { lte?: T; gte?: T }) {
   if (query?.gte && value < query?.gte) return false;
   if (query?.lte && value > query?.lte) return false;
   return true;
@@ -110,7 +110,7 @@ function getLexicalSorter(field: LexicalField) {
 
 const idSorter = getLexicalSorter("id");
 
-function switchSorter(field: ScalarField) {
+function switchSorter(field: OrderField) {
   switch (field) {
     case "id":
       return getLexicalSorter(field);
@@ -140,28 +140,35 @@ export function applyQuery(
   const dirRes = new Set<string>();
   const tagRes = new Set<string>();
   note: for (const note of notes.values()) {
-    if (!dirname(note.id).startsWith(query.dir)) continue;
+    if (!contains(query.dir, note.id)) continue;
     if (
       query.tags.length > 0 &&
-      !note.tags.some((tag) => query.tags.includes(tag))
+      !note.tags.some((tag) => query.tags.some((_tag) => contains(_tag, tag)))
     )
       continue;
     if (
       query.kanban &&
-      !opts.kanbans[query.kanban]?.some((tag) => note.tags.includes(tag))
+      !opts.kanbans[query.kanban]?.some((tag) =>
+        note.tags.some((_tag) => contains(tag, _tag)),
+      )
     )
       continue;
-    if (!testScalar(note.wordcount, query.wordcount)) continue;
-    if (!testScalar(note.mtime, query.mtime)) continue;
+    if (!testOrder(note.wordcount, query.wordcount)) continue;
+    if (!testOrder(note.mtime, query.mtime)) continue;
 
-    for (const tag of note.tags) tagRes.add(tag);
+    for (const tag of note.tags)
+      for (const upTag of upDirs(true, tag)) tagRes.add(upTag);
     for (const itag of opts.invertedTags)
-      if (!query.tags.includes(itag) && note.tags.includes(itag)) continue note;
+      if (
+        !query.tags.includes(itag) &&
+        note.tags.some((_tag) => contains(itag, _tag))
+      )
+        continue note;
 
     // the not fullfills the query
     res.add(note);
     // data for possible query expensions
-    for (const dir of upDirs(note.id)) dirRes.add(dir);
+    for (const dir of upDirs(false, note.id)) dirRes.add(dir);
   }
 
   // sort notes

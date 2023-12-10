@@ -11,7 +11,7 @@ describe("applyQuery", () => {
     const notes = new Map<string, NoteData>();
     expect(applyQuery(nullApplyQueryOpts, notes, nullQuery)).toEqual({
       notes: [],
-      restrict: { dirs: [], tags: [], kanbans: []},
+      restrict: { dirs: [], tags: [], kanbans: [] },
     });
   });
   describe("sort", () => {
@@ -71,14 +71,14 @@ describe("applyQuery", () => {
   describe("tag", () => {
     const notes = new Map<string, NoteData>([
       ["o.md", { ...nullNote, id: "o.md", tags: [] }],
-      ["a.md", { ...nullNote, id: "a.md", tags: ["a", "t"] }],
-      ["b.md", { ...nullNote, id: "b.md", tags: ["b",] }],
+      ["a.md", { ...nullNote, id: "a.md", tags: ["a", "t/u"] }],
+      ["b.md", { ...nullNote, id: "b.md", tags: ["b"] }],
       ["ab.md", { ...nullNote, id: "ab.md", tags: ["a", "b"] }],
     ]);
     test("should suggests tags", () => {
       expect(
         applyQuery(nullApplyQueryOpts, notes, nullQuery).restrict.tags,
-      ).toEqual(["a", "b", "t"]);
+      ).toEqual(["", "a", "b", "t", "t/u"]);
     });
     test("should filter single tag", () => {
       expect(
@@ -107,7 +107,7 @@ describe("applyQuery", () => {
           expect(res.notes.map(({ id }) => id)).toEqual(["b.md", "o.md"]);
         });
         test("put make then available in 'restrict'", () => {
-          expect(res.restrict.tags).toEqual(["a", "b", "t"]);
+          expect(res.restrict.tags).toEqual(["", "a", "b", "t", "t/u"]);
         });
       });
       describe("in query", () => {
@@ -123,19 +123,19 @@ describe("applyQuery", () => {
     });
     describe("kanban", () => {
       it("should suggest available kanbans", () => {
-      const res = applyQuery(
-        { ...nullApplyQueryOpts, kanbans: { p: ["a", "z"], q: ["z"] } },
-        notes,
-        nullQuery,
-      );
+        const res = applyQuery(
+          { ...nullApplyQueryOpts, kanbans: { p: ["a", "z"], q: ["z"] } },
+          notes,
+          nullQuery,
+        );
         expect(res.restrict.kanbans).toEqual(["p"]);
       });
       it("should query notes related to kanban", () => {
-      const res = applyQuery(
-        { ...nullApplyQueryOpts, kanbans: { p: ["a", "z"], q: ["z"] } },
-        notes,
-        {...nullQuery, kanban: "p"},
-      );
+        const res = applyQuery(
+          { ...nullApplyQueryOpts, kanbans: { p: ["a", "z"], q: ["z"] } },
+          notes,
+          { ...nullQuery, kanban: "p" },
+        );
         expect(res.notes.map(({ id }) => id)).toEqual(["a.md", "ab.md"]);
       });
     });
