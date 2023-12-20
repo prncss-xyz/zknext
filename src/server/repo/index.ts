@@ -5,7 +5,7 @@ import type { IConfig, INote } from "../interface";
 import { getFiles } from "./files";
 import path from "path/posix";
 import { readFile, stat } from "node:fs/promises";
-import { INote as NoteData } from "@/core/note";
+import { INote as NoteData } from "@/core";
 import { Errable, Failure } from "@/utils/errable";
 
 @injectable()
