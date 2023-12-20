@@ -8,7 +8,6 @@ import { normalizePath } from "@/utils/path";
 import { getMatter, getProcessor } from "./processor";
 import { Failure, Success } from "@/utils/errable";
 import { fromPreamble } from "./fromPreamble";
-import { NoteData } from "@/core";
 
 interface FileData {
   id: string;

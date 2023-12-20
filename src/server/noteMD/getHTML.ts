@@ -23,7 +23,7 @@ export async function getHTML(opts: INoteGetHTMLOpts, md: string) {
     const res = fromSuccess(resRequest);
     title = res.title || opts.untitled;
   }
-  let p = getProcessor(opts);
+  let p: any = getProcessor(opts);
   p = opts.document ? p.use(rehypeDocument, { title }) : p;
   p = p.use(rehypeStringify).use(rehypeFormat);
   const processed = await p.process(md);
