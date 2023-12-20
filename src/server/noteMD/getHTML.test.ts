@@ -1,5 +1,5 @@
 import { Errable, fromSuccess, fromFailure } from "@/utils/errable";
-import { NoteData } from "@/core";
+import { INote } from "@/core/note";
 import { getHTML } from "./getHTML";
 import { getMeta } from "./getMeta";
 
@@ -10,7 +10,7 @@ describe("parseMD", async () => {
     "c.md": "---\n---\n# title c\n[[a.md]]\n[[b.md]]\n[[999.md]]",
     "d.md": "---\n!: error\n---",
   };
-  const idToMeta = new Map<string, Errable<NoteData>>();
+  const idToMeta = new Map<string, Errable<INote>>();
   for (const [k, v] of Object.entries(files)) {
     idToMeta.set(k, await getMeta({ id: k, mtime: new Date(0) }, v));
   }

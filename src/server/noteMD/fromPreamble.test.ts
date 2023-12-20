@@ -1,4 +1,4 @@
-import { nullNote } from "@/core";
+import { nullNote } from "@/core/note";
 import { fromPreamble } from "./fromPreamble";
 
 describe("fromPreamble", () => {

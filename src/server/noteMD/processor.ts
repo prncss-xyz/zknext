@@ -15,14 +15,14 @@ import wikiLink from "remark-wiki-link";
 import { unified } from "unified";
 import { visit } from "unist-util-visit";
 import * as yaml from "js-yaml";
-import { NoteData } from "@/core";
+import { INote } from "@/core/note";
 import { Errable, fromSuccess } from "@/utils/errable";
 
 const defaultExtension = ".md";
 
 export interface ITransform {
   id: string;
-  idToMeta: Map<string, Errable<NoteData>>;
+  idToMeta: Map<string, Errable<INote>>;
 }
 
 function transform(opts: ITransform | null) {

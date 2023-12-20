@@ -1,16 +1,13 @@
-import {
-  NoteData,
-  applyQuery,
-  getSorter,
-  nullApplyQueryOpts,
-  nullNote,
-  nullQuery,
-} from ".";
+// we test both filters and sorters here in order to use the same samples
+
+import { INote, nullNote } from "./note";
+import { applyFilter, nullApplyFilterOpts, nullFilter } from "./filters";
+import { getSorter } from "./sorters";
 
 describe("applyQuery", () => {
   it("should return empty", () => {
-    const notes = new Map<string, NoteData>();
-    expect(applyQuery(nullApplyQueryOpts, notes, nullQuery)).toEqual({
+    const notes = new Map<string, INote>();
+    expect(applyFilter(nullApplyFilterOpts, notes, nullFilter)).toEqual({
       notes: [],
       hidden: 0,
       restrict: { dirs: [], tags: [], kanbans: [] },
@@ -44,7 +41,7 @@ describe("applyQuery", () => {
     });
   });
   describe("dir", () => {
-    const notes = new Map<string, NoteData>([
+    const notes = new Map<string, INote>([
       ["a.md", { ...nullNote, id: "a.md" }],
       ["a/b.md", { ...nullNote, id: "a/b.md" }],
       ["a/b/c.md", { ...nullNote, id: "a/b/c.md" }],
@@ -52,8 +49,8 @@ describe("applyQuery", () => {
     describe("should filter", () => {
       test("should restrict to dir", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             dir: "a",
           })
             .notes.map(({ id }) => id)
@@ -62,13 +59,13 @@ describe("applyQuery", () => {
       });
       test("should restrict to dir", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, nullQuery).restrict.dirs.sort(),
+          applyFilter(nullApplyFilterOpts, notes, nullFilter).restrict.dirs.sort(),
         ).toEqual(["", "a", "a/b"]);
       });
     });
   });
   describe("tag", () => {
-    const notes = new Map<string, NoteData>([
+    const notes = new Map<string, INote>([
       ["o.md", { ...nullNote, id: "o.md", tags: [] }],
       ["a.md", { ...nullNote, id: "a.md", tags: ["a", "t/u"] }],
       ["b.md", { ...nullNote, id: "b.md", tags: ["b"] }],
@@ -76,13 +73,13 @@ describe("applyQuery", () => {
     ]);
     test("should suggests tags", () => {
       expect(
-        applyQuery(nullApplyQueryOpts, notes, nullQuery).restrict.tags,
+        applyFilter(nullApplyFilterOpts, notes, nullFilter).restrict.tags,
       ).toEqual(["", "a", "b", "t", "t/u"]);
     });
     test("should filter single tag", () => {
       expect(
-        applyQuery(nullApplyQueryOpts, notes, {
-          ...nullQuery,
+        applyFilter(nullApplyFilterOpts, notes, {
+          ...nullFilter,
           tags: ["a"],
         })
           .notes.map(({ id }) => id)
@@ -91,8 +88,8 @@ describe("applyQuery", () => {
     });
     test("should filter multiple tags", () => {
       expect(
-        applyQuery(nullApplyQueryOpts, notes, {
-          ...nullQuery,
+        applyFilter(nullApplyFilterOpts, notes, {
+          ...nullFilter,
           tags: ["a", "b"],
         })
           .notes.map(({ id }) => id)
@@ -101,10 +98,10 @@ describe("applyQuery", () => {
     });
     describe("hidden tags", () => {
       describe("non hidden query", () => {
-        const res = applyQuery(
-          { ...nullApplyQueryOpts, hidden: { ...nullQuery, tags: ["a"] } },
+        const res = applyFilter(
+          { ...nullApplyFilterOpts, hidden: { ...nullFilter, tags: ["a"] } },
           notes,
-          nullQuery,
+          nullFilter,
         );
         test("hidden query should be excluded", () => {
           expect(res.notes.map(({ id }) => id).sort()).toEqual([
@@ -119,11 +116,11 @@ describe("applyQuery", () => {
       describe("hidden query", () => {
         test("hidden results should be shown", () => {
           expect(
-            applyQuery(
-              { ...nullApplyQueryOpts, hidden: { ...nullQuery, tags: ["a"] } },
+            applyFilter(
+              { ...nullApplyFilterOpts, hidden: { ...nullFilter, tags: ["a"] } },
               notes,
               {
-                ...nullQuery,
+                ...nullFilter,
                 tags: ["a"],
                 hidden: true,
               },
@@ -136,25 +133,25 @@ describe("applyQuery", () => {
     });
     describe("kanban", () => {
       it("should suggest available kanbans", () => {
-        const res = applyQuery(
-          { ...nullApplyQueryOpts, kanbans: { p: ["a", "z"], q: ["z"] } },
+        const res = applyFilter(
+          { ...nullApplyFilterOpts, kanbans: { p: ["a", "z"], q: ["z"] } },
           notes,
-          nullQuery,
+          nullFilter,
         );
         expect(res.restrict.kanbans).toEqual(["p"]);
       });
       it("should query notes related to kanban", () => {
-        const res = applyQuery(
-          { ...nullApplyQueryOpts, kanbans: { p: ["a", "z"], q: ["z"] } },
+        const res = applyFilter(
+          { ...nullApplyFilterOpts, kanbans: { p: ["a", "z"], q: ["z"] } },
           notes,
-          { ...nullQuery, kanban: "p" },
+          { ...nullFilter, kanban: "p" },
         );
         expect(res.notes.map(({ id }) => id).sort()).toEqual(["a.md", "ab.md"]);
       });
     });
   });
   describe("mtime", () => {
-    const notes = new Map<string, NoteData>([
+    const notes = new Map<string, INote>([
       ["a.md", { ...nullNote, id: "a.md", mtime: new Date(1) }],
       ["b.md", { ...nullNote, id: "b.md", mtime: new Date(3) }],
       ["c.md", { ...nullNote, id: "c.md", mtime: new Date(2) }],
@@ -162,14 +159,14 @@ describe("applyQuery", () => {
     describe("should sort", () => {
       test("ascending", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, nullQuery)
+          applyFilter(nullApplyFilterOpts, notes, nullFilter)
             .notes.sort(getSorter({ field: "mtime", asc: true }))
             .map((note) => note.id),
         ).toEqual(["a.md", "c.md", "b.md"]);
       });
       test("descending", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, nullQuery)
+          applyFilter(nullApplyFilterOpts, notes, nullFilter)
             .notes.sort(getSorter({ field: "mtime", asc: false }))
             .map((note) => note.id),
         ).toEqual(["b.md", "c.md", "a.md"]);
@@ -178,8 +175,8 @@ describe("applyQuery", () => {
     describe("should filter", () => {
       test("lte", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             mtime: { lte: new Date(2) },
           })
             .notes.map((note) => note.id)
@@ -188,8 +185,8 @@ describe("applyQuery", () => {
       });
       test("gte", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             mtime: { gte: new Date(2) },
           })
             .notes.map((note) => note.id)
@@ -199,7 +196,7 @@ describe("applyQuery", () => {
     });
   });
   describe("due", () => {
-    const notes = new Map<string, NoteData>([
+    const notes = new Map<string, INote>([
       ["a.md", { ...nullNote, id: "a.md", due: new Date(1) }],
       ["b.md", { ...nullNote, id: "b.md", due: new Date(3) }],
       ["e.md", { ...nullNote, id: "e.md" }],
@@ -208,14 +205,14 @@ describe("applyQuery", () => {
     describe("should sort", () => {
       test("ascending", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, nullQuery)
+          applyFilter(nullApplyFilterOpts, notes, nullFilter)
             .notes.sort(getSorter({ field: "due", asc: true }))
             .map((note) => note.id),
         ).toEqual(["e.md", "a.md", "c.md", "b.md"]);
       });
       test("descending", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, nullQuery)
+          applyFilter(nullApplyFilterOpts, notes, nullFilter)
             .notes.sort(getSorter({ field: "due", asc: false }))
             .map((note) => note.id),
         ).toEqual(["b.md", "c.md", "a.md", "e.md"]);
@@ -224,8 +221,8 @@ describe("applyQuery", () => {
     describe("should filter", () => {
       test("lte", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             due: { lte: new Date(2) },
           })
             .notes.map((note) => note.id)
@@ -234,8 +231,8 @@ describe("applyQuery", () => {
       });
       test("gte", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             due: { gte: new Date(2) },
           })
             .notes.map((note) => note.id)
@@ -245,7 +242,7 @@ describe("applyQuery", () => {
     });
   });
   describe("until", () => {
-    const notes = new Map<string, NoteData>([
+    const notes = new Map<string, INote>([
       ["a.md", { ...nullNote, id: "a.md", until: new Date(1) }],
       ["b.md", { ...nullNote, id: "b.md", until: new Date(3) }],
       ["e.md", { ...nullNote, id: "e.md" }],
@@ -254,14 +251,14 @@ describe("applyQuery", () => {
     describe("should sort", () => {
       test("ascending", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, nullQuery)
+          applyFilter(nullApplyFilterOpts, notes, nullFilter)
             .notes.sort(getSorter({ field: "until", asc: true }))
             .map((note) => note.id),
         ).toEqual(["e.md", "a.md", "c.md", "b.md"]);
       });
       test("descending", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, nullQuery)
+          applyFilter(nullApplyFilterOpts, notes, nullFilter)
             .notes.sort(getSorter({ field: "until", asc: false }))
             .map((note) => note.id),
         ).toEqual(["b.md", "c.md", "a.md", "e.md"]);
@@ -270,8 +267,8 @@ describe("applyQuery", () => {
     describe("should filter", () => {
       test("lte", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             until: { lte: new Date(2) },
           })
             .notes.map((note) => note.id)
@@ -280,8 +277,8 @@ describe("applyQuery", () => {
       });
       test("gte", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             until: { gte: new Date(2) },
           })
             .notes.map((note) => note.id)
@@ -291,7 +288,7 @@ describe("applyQuery", () => {
     });
   });
   describe("since", () => {
-    const notes = new Map<string, NoteData>([
+    const notes = new Map<string, INote>([
       ["a.md", { ...nullNote, id: "a.md", since: new Date(1) }],
       ["b.md", { ...nullNote, id: "b.md", since: new Date(3) }],
       ["e.md", { ...nullNote, id: "e.md" }],
@@ -300,14 +297,14 @@ describe("applyQuery", () => {
     describe("should sort", () => {
       test("ascending", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, nullQuery)
+          applyFilter(nullApplyFilterOpts, notes, nullFilter)
             .notes.sort(getSorter({ field: "since", asc: true }))
             .map((note) => note.id),
         ).toEqual(["e.md", "a.md", "c.md", "b.md"]);
       });
       test("descending", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, nullQuery)
+          applyFilter(nullApplyFilterOpts, notes, nullFilter)
             .notes.sort(getSorter({ field: "since", asc: false }))
             .map((note) => note.id),
         ).toEqual(["b.md", "c.md", "a.md", "e.md"]);
@@ -316,8 +313,8 @@ describe("applyQuery", () => {
     describe("should filter", () => {
       test("lte", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             since: { lte: new Date(2) },
           })
             .notes.map((note) => note.id)
@@ -326,8 +323,8 @@ describe("applyQuery", () => {
       });
       test("gte", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             since: { gte: new Date(2) },
           })
             .notes.map((note) => note.id)
@@ -337,7 +334,7 @@ describe("applyQuery", () => {
     });
   });
   describe("wordcount", () => {
-    const notes = new Map<string, NoteData>([
+    const notes = new Map<string, INote>([
       ["a.md", { ...nullNote, id: "a.md", wordcount: 1 }],
       ["b.md", { ...nullNote, id: "b.md", wordcount: 3 }],
       ["c.md", { ...nullNote, id: "c.md", wordcount: 2 }],
@@ -345,14 +342,14 @@ describe("applyQuery", () => {
     describe("should sort", () => {
       test("ascending", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, nullQuery)
+          applyFilter(nullApplyFilterOpts, notes, nullFilter)
             .notes.sort(getSorter({ field: "wordcount", asc: true }))
             .map((note) => note.id),
         ).toEqual(["a.md", "c.md", "b.md"]);
       });
       test("descending", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, nullQuery)
+          applyFilter(nullApplyFilterOpts, notes, nullFilter)
             .notes.sort(getSorter({ field: "wordcount", asc: false }))
             .map((note) => note.id),
         ).toEqual(["b.md", "c.md", "a.md"]);
@@ -361,8 +358,8 @@ describe("applyQuery", () => {
     describe("should filter", () => {
       test("lte", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             wordcount: { lte: 2 },
           })
             .notes.map((note) => note.id)
@@ -371,8 +368,8 @@ describe("applyQuery", () => {
       });
       test("gte", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             wordcount: { gte: 2 },
           })
             .notes.map((note) => note.id)
@@ -384,7 +381,7 @@ describe("applyQuery", () => {
   describe("event", () => {
     const dateA = new Date("2020-10-10");
     const dateB = new Date("2020-10-11");
-    const notes = new Map<string, NoteData>([
+    const notes = new Map<string, INote>([
       ["a.md", { ...nullNote, id: "a.md", event: { start: dateB, end: null } }],
       [
         "b.md",
@@ -409,7 +406,7 @@ describe("applyQuery", () => {
     ]);
     it("should sort", () => {
       expect(
-        applyQuery(nullApplyQueryOpts, notes, nullQuery)
+        applyFilter(nullApplyFilterOpts, notes, nullFilter)
           .notes.sort(getSorter({ field: "event", asc: true }))
           .map((note) => note.id),
       ).toEqual([
@@ -425,7 +422,7 @@ describe("applyQuery", () => {
       ]);
     });
     describe("second sample", () => {
-      const notesB = new Map<string, NoteData>([
+      const notesB = new Map<string, INote>([
         ["j.md", { ...nullNote, id: "j.md" }],
         ["i.md", { ...nullNote, id: "i.md" }],
         [
@@ -463,7 +460,7 @@ describe("applyQuery", () => {
       ]);
       it("should sort", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notesB, nullQuery)
+          applyFilter(nullApplyFilterOpts, notesB, nullFilter)
             .notes.sort(getSorter({ field: "event", asc: true }))
             .map((note) => note.id),
         ).toEqual([
@@ -483,8 +480,8 @@ describe("applyQuery", () => {
     describe("should filter", () => {
       test("exists", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             event: {},
           })
             .notes.map(({ id }) => id)
@@ -502,8 +499,8 @@ describe("applyQuery", () => {
       });
       test("lte", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             event: { lte: dateA },
           })
             .notes.map(({ id }) => id)
@@ -512,8 +509,8 @@ describe("applyQuery", () => {
       });
       test("gte", () => {
         expect(
-          applyQuery(nullApplyQueryOpts, notes, {
-            ...nullQuery,
+          applyFilter(nullApplyFilterOpts, notes, {
+            ...nullFilter,
             event: { gte: dateB },
           })
             .notes.map(({ id }) => id)
@@ -524,7 +521,7 @@ describe("applyQuery", () => {
   });
 });
 describe("since", () => {
-  const notes = new Map<string, NoteData>([
+  const notes = new Map<string, INote>([
     ["c.md", { ...nullNote, id: "c.md", since: new Date(2) }],
     ["e.md", { ...nullNote, id: "e.md" }],
     ["b.md", { ...nullNote, id: "b.md", since: new Date(3) }],
@@ -533,14 +530,14 @@ describe("since", () => {
   describe("should sort", () => {
     test("ascending", () => {
       expect(
-        applyQuery(nullApplyQueryOpts, notes, nullQuery)
+        applyFilter(nullApplyFilterOpts, notes, nullFilter)
           .notes.sort(getSorter({ field: "since", asc: true }))
           .map((note) => note.id),
       ).toEqual(["e.md", "a.md", "c.md", "b.md"]);
     });
     test("descending", () => {
       expect(
-        applyQuery(nullApplyQueryOpts, notes, nullQuery)
+        applyFilter(nullApplyFilterOpts, notes, nullFilter)
           .notes.sort(getSorter({ field: "since", asc: false }))
           .map((note) => note.id),
       ).toEqual(["b.md", "c.md", "a.md", "e.md"]);
@@ -549,8 +546,8 @@ describe("since", () => {
   describe("should filter", () => {
     test("lte", () => {
       expect(
-        applyQuery(nullApplyQueryOpts, notes, {
-          ...nullQuery,
+        applyFilter(nullApplyFilterOpts, notes, {
+          ...nullFilter,
           since: { lte: new Date(2) },
         })
           .notes.map((note) => note.id)
@@ -559,13 +556,38 @@ describe("since", () => {
     });
     test("gte", () => {
       expect(
-        applyQuery(nullApplyQueryOpts, notes, {
-          ...nullQuery,
+        applyFilter(nullApplyFilterOpts, notes, {
+          ...nullFilter,
           since: { gte: new Date(2) },
         })
           .notes.map((note) => note.id)
           .sort(),
       ).toEqual(["b.md", "c.md"]);
+    });
+  });
+});
+describe("asset", () => {
+  const notes = new Map<string, INote>([
+    ["c.md", { ...nullNote, id: "c.md", asset: "b" }],
+    ["e.md", { ...nullNote, id: "e.md" }],
+    ["f.md", { ...nullNote, id: "f.md" }],
+    ["b.md", { ...nullNote, id: "b.md", asset: "c" }],
+    ["a.md", { ...nullNote, id: "a.md", asset: "a" }],
+  ]);
+  describe("should sort", () => {
+    test("ascending", () => {
+      expect(
+        applyFilter(nullApplyFilterOpts, notes, nullFilter)
+          .notes.sort(getSorter({ field: "asset", asc: true }))
+          .map((note) => note.id),
+      ).toEqual(["e.md", "f.md", "a.md", "c.md", "b.md"]);
+    });
+    test("descending", () => {
+      expect(
+        applyFilter(nullApplyFilterOpts, notes, nullFilter)
+          .notes.sort(getSorter({ field: "asset", asc: false }))
+          .map((note) => note.id),
+      ).toEqual(["b.md", "c.md", "a.md", "f.md", "e.md"]);
     });
   });
 });

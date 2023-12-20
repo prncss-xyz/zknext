@@ -1,5 +1,5 @@
-import { NoteData } from "@/core";
-import { Errable } from "@/utils/errable";
+import type { INote as NoteData } from "@/core/note";
+import type { Errable } from "@/utils/errable";
 
 export interface ICache {}
 export const CacheType = Symbol.for("Cache");
