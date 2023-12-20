@@ -1,13 +1,13 @@
 import { injectable } from "inversify";
 import "reflect-metadata";
-import { FileData, INote, INoteGetHTMLOpts } from "../interface";
+import { FileData, INoteFile, INoteGetHTMLOpts } from "../interface";
 import { getMeta } from "./getMeta";
 import { getHTML } from "./getHTML";
 import path from "path/posix";
 
 @injectable()
-export class NoteMD implements INote {
-  shouldKeepFile(id: string) {
+export class NoteFileMD implements INoteFile {
+  shouldReadFile(id: string) {
     const ext = path.extname(id);
     return ext === ".md";
   }

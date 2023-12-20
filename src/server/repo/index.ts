@@ -1,17 +1,17 @@
 import { injectable, inject } from "inversify";
 import "reflect-metadata";
 import { ConfigType, IRepo, NoteType } from "../interface";
-import type { IConfig, INote } from "../interface";
+import type { IConfig, INoteFile } from "../interface";
 import { getFiles } from "./files";
 import path from "path/posix";
 import { readFile, stat } from "node:fs/promises";
-import { INote as NoteData } from "@/core";
+import { INote } from "@/core/note";
 import { Errable, Failure } from "@/utils/errable";
 
 @injectable()
 export class RepoLive implements IRepo {
   @inject(ConfigType) private config!: IConfig;
-  @inject(NoteType) private note!: INote;
+  @inject(NoteType) private note!: INoteFile;
   public async getNote(id: string) {
     return (await this.getIdToMeta()).get(id) ?? new Failure("nofile");
   }
@@ -34,7 +34,7 @@ export class RepoLive implements IRepo {
     );
   }
   public async getNotes() {
-    const entries: NoteData[] = [];
+    const entries: INote[] = [];
     for (const [_, note] of await this.getIdToMeta()) {
       if (note._tag === "failure") continue;
       entries.push(note.result);
@@ -45,12 +45,12 @@ export class RepoLive implements IRepo {
     this.idToMeta ??= await this.scanDir();
     return this.idToMeta;
   }
-  private idToMeta: Map<string, Errable<NoteData>> | undefined;
+  private idToMeta: Map<string, Errable<INote>> | undefined;
   private async scanDir() {
-    const resolvedNotes = new Map<string, Errable<NoteData>>();
+    const resolvedNotes = new Map<string, Errable<INote>>();
     const { notebookDir } = await this.config.getConfig();
     for await (const id of getFiles(notebookDir)) {
-      if (this.note.shouldKeepFile(id)) {
+      if (this.note.shouldReadFile(id)) {
         const note = await this.readNoteMeta(id);
         resolvedNotes.set(id, note);
       }

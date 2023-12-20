@@ -1,9 +1,9 @@
 import { Container, injectable } from "inversify";
-import { ConfigType, IConfig, INote, IRepo, NoteType, RepoType } from "../interface";
+import { ConfigType, IConfig, INoteFile, IRepo, NoteType, RepoType } from "../interface";
 import mock from "mock-fs";
 import { Failure, fromSuccess, fromFailure } from "@/utils/errable";
 import { RepoLive } from ".";
-import { NoteMD } from "../noteMD";
+import { NoteFileMD } from "../noteFileMD";
 
 @injectable()
 export class ConfigMock implements IConfig {
@@ -15,7 +15,7 @@ export class ConfigMock implements IConfig {
 function getContainerNotes() {
   const testContainer = new Container();
   testContainer.bind<IConfig>(ConfigType).to(ConfigMock);
-  testContainer.bind<INote>(NoteType).to(NoteMD);
+  testContainer.bind<INoteFile>(NoteType).to(NoteFileMD);
   testContainer.bind<IRepo>(RepoType).to(RepoLive);
   return testContainer.get<IRepo>(RepoType);
 }
