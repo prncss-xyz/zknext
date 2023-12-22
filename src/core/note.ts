@@ -38,6 +38,8 @@ export const nullNote: INote = {
 
 export type Field = keyof INote;
 
+export const optFields: Field[] = ["title", "event", "due", "since", "until"];
+
 export type NumberField = {
   [K in keyof INote]: INote[K] extends number | null ? K : never;
 }[keyof INote];
@@ -57,12 +59,10 @@ export function isDateField(field: Field): field is DateField {
 export type DateRangeField = {
   [K in keyof INote]: INote[K] extends IDateRange | null ? K : never;
 }[keyof INote];
-/*
 export const dateRangeFields: DateRangeField[] = ["event"];
-exrpot function isDateRangeField(field: Field): field is DateRangeField {
+export function isDateRangeField(field: Field): field is DateRangeField {
   return (dateRangeFields as Field[]).includes(field);
 }
-*/
 
 export type StringField = {
   [K in keyof INote]: INote[K] extends string | null ? K : never;

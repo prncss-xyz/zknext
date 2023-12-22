@@ -35,6 +35,7 @@ const unconditionalProperties = defineProperties({
     textAlign: ["center"],
     borderStyle: {
       top: "solid none none none",
+      bottom: "none none solid none",
       all: "solid solid solid solid",
     },
   },
@@ -60,9 +61,11 @@ const responsiveProperties = defineProperties({
     marginRight: space,
     borderRadius: borderRadii,
     flexDirection: ["column", "row"],
-    alignItems: ["center", "flex-end", "flex-start", "baseline"],
-    display: ["inline", "flex", "block", "inline-block", "none"],
+    alignItems: ["center", "flex-end", "flex-start", "baseline", "stretch"],
+    alignSelf: ["center", "flex-end", "flex-start", "baseline", "stretch"],
+    display: ["inline", "flex", "block", "inline-block", "none", "grid"],
     gap: space,
+    columnGap: space,
     rowGap: space,
   },
   shorthands: {
@@ -85,7 +88,7 @@ const responsiveProperties = defineProperties({
 
 export const sprinkles = createSprinkles(
   responsiveProperties,
-  unconditionalProperties
+  unconditionalProperties,
 );
 
 export type Sprinkles = Parameters<typeof sprinkles>[0];

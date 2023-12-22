@@ -13,7 +13,7 @@ function Failure({ message }: { message: string }) {
   );
 }
 
-export async function Note({ id }: { id: string }) {
+async function Note({ id }: { id: string }) {
   const note = await getNote(id);
   if (note._tag === "failure") return <Failure message={note.message} />;
   return <NoteContents id={id} />;

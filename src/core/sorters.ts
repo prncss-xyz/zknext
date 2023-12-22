@@ -9,15 +9,26 @@ import {
   isStringField,
 } from "./note";
 
-type OrderField = NumberField | DateField | DateRangeField | StringField;
+export type OrderField = NumberField | DateField | DateRangeField | StringField;
+export const orderFields: OrderField[] = [
+  "id",
+  "mtime",
+  "title",
+  "event",
+  "due",
+  "since",
+  "until",
+  "asset",
+  "wordcount",
+];
 
-interface Sort {
+export interface ISort {
   field: OrderField;
   asc: boolean;
 }
 
-export const nullSort: Sort = {
-  field: "id",
+export const nullSort: ISort = {
+  field: "title",
   asc: true,
 };
 
@@ -93,7 +104,7 @@ function switchSorter(field: OrderField) {
   return getDateRangeSorter(field);
 }
 
-export function getSorter({ field, asc }: Sort) {
+export function getSorter({ field, asc }: ISort) {
   const baseSorter = switchSorter(field);
   const sgn = asc ? 1 : -1;
   return function (a: INote, b: INote) {

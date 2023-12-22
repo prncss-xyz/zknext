@@ -51,7 +51,7 @@ describe("applyQuery", () => {
         expect(
           applyFilter(nullApplyFilterOpts, notes, {
             ...nullFilter,
-            dir: "a",
+            id: "a",
           })
             .notes.map(({ id }) => id)
             .sort(),

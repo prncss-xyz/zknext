@@ -3,7 +3,7 @@ import { IDateRange, INote } from "./note";
 
 function filterDateRange(
   query: { lte?: Date; gte?: Date } | undefined,
-  value: IDateRange | null
+  value: IDateRange | null,
 ) {
   if (query === undefined) return true;
   if (value === null) return false;
@@ -20,18 +20,21 @@ function filterOrder<T>(query: { lte?: T; gte?: T } | undefined, value: T) {
   return true;
 }
 
-interface DateRangeFilter {
+interface IDateRangeFilter {
   lte?: Date;
   gte?: Date;
 }
 
-interface BaseFilter {
-  dir: string;
-  mtime?: DateRangeFilter;
-  due?: DateRangeFilter;
-  since?: DateRangeFilter;
-  until?: DateRangeFilter;
-  event?: DateRangeFilter;
+interface IBaseFilter {
+  // actually the dir an id will be checked against
+  id: string;
+  title: string;
+  asset: string;
+  mtime?: IDateRangeFilter;
+  due?: IDateRangeFilter;
+  since?: IDateRangeFilter;
+  until?: IDateRangeFilter;
+  event?: IDateRangeFilter;
   wordcount?: {
     lte?: number;
     gte?: number;
@@ -40,23 +43,39 @@ interface BaseFilter {
   tags: string[];
 }
 
-export const nullBaseFilter: BaseFilter = {
-  dir: "",
+export const existsFilter: IBaseFilter = {
+  id: "",
+  title: "",
+  asset: "",
+  mtime: {},
+  due: {},
+  since: {},
+  until: {},
+  event: {},
+  wordcount: {},
+  kanban: "",
+  tags: [],
+};
+
+export const nullBaseFilter: IBaseFilter = {
+  id: "",
+  title: "",
+  asset: "",
   tags: [],
   kanban: "",
 };
 
-interface Filter extends BaseFilter {
+export interface IFilter extends IBaseFilter {
   hidden: boolean;
 }
 
-export const nullFilter: Filter = {
+export const nullFilter: IFilter = {
   ...nullBaseFilter,
   hidden: false,
 };
 
 interface ApplyFilterOpts {
-  hidden?: BaseFilter;
+  hidden?: IBaseFilter;
   kanbans: {
     [name: string]: string[];
   };
@@ -66,12 +85,8 @@ export const nullApplyFilterOpts: ApplyFilterOpts = {
   kanbans: {},
 };
 
-function filterNote(
-  note: INote,
-  filter: BaseFilter,
-  opts: ApplyFilterOpts
-) {
-  if (!contains(filter.dir, note.id)) return false;
+function filterNote(note: INote, filter: IBaseFilter, opts: ApplyFilterOpts) {
+  if (!contains(filter.id, note.id)) return false;
   if (
     filter.tags.length > 0 &&
     !note.tags.some((tag) => filter.tags.some((_tag) => contains(_tag, tag)))
@@ -80,7 +95,7 @@ function filterNote(
   if (
     filter.kanban &&
     !opts.kanbans[filter.kanban]?.some((tag) =>
-      note.tags.some((_tag) => contains(tag, _tag))
+      note.tags.some((_tag) => contains(tag, _tag)),
     )
   )
     return false;
@@ -96,7 +111,7 @@ function filterNote(
 export function applyFilter(
   opts: ApplyFilterOpts,
   notes: Map<string, INote>,
-  filter: Filter
+  filter: IFilter,
 ) {
   const res = new Set<INote>();
   const dirRes = new Set<string>();

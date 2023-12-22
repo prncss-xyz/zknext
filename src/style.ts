@@ -7,10 +7,10 @@ export const sizes = {
   paneWidthComplement: `calc(100vw - ${paneWidth}px - 20px)`,
   galleryImage: 150,
   noteAssetHeight: 300,
-  screenMaxWidth: 900,
+  screenMaxWidth: 800,
   kanbanWidth: 200,
   labelWidth: 120,
-  navCheckboxWidth: 20,
+  navCheckboxWidth: 15,
   navInputWidth: 160,
   navLabelWidth: 100,
   "100%": "100%",
@@ -21,7 +21,7 @@ export const sizes = {
 
 export const fontSizes = [] as const;
 
-export const borderRadii = [0, 3, 5] as const;
+export const borderRadii = [0, 2, 5] as const;
 
 export const fontWeights = { bold: 700 };
 
@@ -34,6 +34,7 @@ export const borderWidths = [0, 1, 2] as const;
 
 export const _light = {
   text: "hsl(0, 0%, 30%)",
+  muted: "hsl(0, 0%, 45%)",
   disabled: "hsl(0, 0%, 10%)",
   link: "hsl(260, 80%, 63%)",
   foreground1: "hsl(150, 10%, 80%)",
@@ -45,6 +46,7 @@ export const _light = {
 
 export const _dark = {
   text: "hsl(0, 0%, 65%)",
+  muted: "hsl(0, 0%, 50%)",
   disabled: "hsl(0, 0%, 35%)",
   link: "hsl(260, 80%, 60%)",
   foreground1: "hsl(150, 10%, 25%)",

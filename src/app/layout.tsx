@@ -1,7 +1,6 @@
 import clsx from "clsx";
 /* import { Inter } from "next/font/google"; */
 import { theme } from "@/theme.css";
-import { Box } from "@/components/box";
 
 import "the-new-css-reset/css/reset.css";
 
@@ -19,20 +18,14 @@ export default async function RootLayout({
 }) {
   return (
     <html lang="en">
-      <Box
-        as="body"
+      <body
         className={clsx(
           /* inter.className, */
-          theme
+          theme,
         )}
-        mx={{ xs: 0, md: 20 }}
-        my={{ xs: 10, md: 20 }}
-        display="flex"
-        flexDirection="row"
-        justifyContent="flex-start"
       >
         {children}
-      </Box>
+      </body>
     </html>
   );
 }
