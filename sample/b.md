@@ -1,4 +1,5 @@
 ---
+tags: [t, t/a]
 ---
 contents b
 

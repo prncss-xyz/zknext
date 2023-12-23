@@ -1,7 +1,12 @@
 "use client";
 import * as Checkbox from "@radix-ui/react-checkbox";
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
-import { CaretUpIcon, CaretDownIcon, CheckIcon } from "@radix-ui/react-icons";
+import {
+  CaretUpIcon,
+  CaretDownIcon,
+  CheckIcon,
+  Cross2Icon,
+} from "@radix-ui/react-icons";
 import {
   useQuery,
   destringifySort,
@@ -11,10 +16,14 @@ import { Box, BoxProps } from "@/components/box";
 import { INote, isStringField, optFields } from "@/core/note";
 import { Link } from "@/components/link";
 import { ReactNode, useCallback, useEffect, useState } from "react";
-import { OrderField, orderFields } from "@/core/sorters";
+import { OrderField } from "@/core/sorters";
 import { selector } from "./entries.css";
 import { H1 } from "@/components/h1";
-import { getBound, isValidBound, setBound, setFilter } from "@/core";
+import { H2 } from "@/components/h2";
+import { getBound, isValidBound, nullQuery, setBound, setFilter } from "@/core";
+import { contains } from "@/utils/path";
+import { toggle } from "@/utils/arrays";
+import { deepEqual } from "fast-equals";
 
 function Entry({ note }: { note: INote }) {
   return (
@@ -28,7 +37,7 @@ function Entry({ note }: { note: INote }) {
 }
 
 function Bound({ field, start }: { field: OrderField; start: boolean }) {
-  const [_, query, setQuery] = useQuery();
+  const { query, setQuery } = useQuery();
   const bound = getBound(query, field, start);
   const [value, setValue] = useState(bound);
   // this is needed beacuse the contents of bound can be either last edited contents or a value corresponding to last update of query
@@ -113,7 +122,7 @@ function SmallButton({
 }
 
 function QueryCheckBox({ field }: { field: OrderField }) {
-  const [_, query, setQuery] = useQuery();
+  const { query, setQuery } = useQuery();
   const checked = Boolean((query.filter as any)[field]);
   const setChecked = useCallback(
     (checked_: unknown) => {
@@ -139,7 +148,7 @@ function QueryCheckBox({ field }: { field: OrderField }) {
 }
 
 function SortSelector({ children }: { children: ReactNode }) {
-  const [_, query, setQuery] = useQuery();
+  const { query, setQuery } = useQuery();
   const value = stringifySort(query.sort);
   const setValue = useCallback(
     (value_: string) => {
@@ -199,6 +208,9 @@ function QuerySelectorRow({ field }: { field: OrderField }) {
 }
 
 function QuerySelector({}: {}) {
+  const {
+    restrict: { event, due, since, until },
+  } = useQuery();
   return (
     <SortSelector>
       <Box
@@ -215,17 +227,180 @@ function QuerySelector({}: {}) {
         <QuerySelectorRow field="title" />
         <QuerySelectorRow field="wordcount" />
         <QuerySelectorRow field="mtime" />
-        <QuerySelectorRow field="event" />
-        <QuerySelectorRow field="due" />
-        <QuerySelectorRow field="since" />
-        <QuerySelectorRow field="until" />
+        {event && <QuerySelectorRow field="event" />}
+        {due && <QuerySelectorRow field="due" />}
+        {since && <QuerySelectorRow field="since" />}
+        {until && <QuerySelectorRow field="until" />}
       </Box>
     </SortSelector>
   );
 }
 
+function DirBox({ dir, ...props }: { dir: string } & BoxProps) {
+  return (
+    <ButtonBox fontFamily="monospace" {...props}>
+      {dir ? dir : <Cross2Icon />}
+    </ButtonBox>
+  );
+}
+
+function TagBox({ tag, ...props }: { tag: string } & BoxProps) {
+  return <ButtonBox {...props}>{tag}</ButtonBox>;
+}
+
+function Dir({ dir }: { dir: string }) {
+  const { query, setQuery } = useQuery();
+  const { filter } = query;
+  const { id: current } = filter;
+  const active = contains(dir, current);
+  const onClick = useCallback(() => {
+    setQuery({ ...query, filter: { ...filter, id: dir } });
+  }, [filter, dir, query, setQuery]);
+  if (dir === current) return <DirBox dir={dir} />;
+  return (
+    <DirBox
+      as="button"
+      color={active ? "active" : undefined}
+      dir={dir}
+      onClick={onClick}
+    />
+  );
+}
+
+function Tag({ tag }: { tag: string }) {
+  const { query, setQuery } = useQuery();
+  const { filter } = query;
+  const { tags: current } = filter;
+  const active = current.includes(tag);
+  const onClick = useCallback(() => {
+    setQuery({
+      ...query,
+      filter: { ...filter, tags: toggle(current, tag, !active) },
+    });
+  }, [active, current, filter, query, setQuery, tag]);
+  return (
+    <TagBox
+      as="button"
+      color={active ? "active" : undefined}
+      tag={tag}
+      onClick={onClick}
+    />
+  );
+}
+
+function Dirs({}: {}) {
+  const {
+    restrict: { ids },
+  } = useQuery();
+  return (
+    <Box>
+      <H2>Dirs</H2>
+      <Box display="flex" flexDirection="row" flexWrap="wrap" gap={5}>
+        {ids.map((id) => (
+          <Dir key={id} dir={id} />
+        ))}
+      </Box>
+    </Box>
+  );
+}
+
+function ClearTags({}: {}) {
+  const { query, setQuery } = useQuery();
+  const { filter } = query;
+  const clear = useCallback(() => {
+    setQuery({
+      ...query,
+      filter: { ...filter, tags: [] },
+    });
+  }, [filter, query, setQuery]);
+  return (
+    <Box as="button" onClick={clear}>
+      <Cross2Icon />
+    </Box>
+  );
+}
+
+function Tags({}: {}) {
+  const {
+    restrict: { tags },
+  } = useQuery();
+  return (
+    <Box>
+      <H2>Tags</H2>
+      <Box display="flex" flexDirection="row" flexWrap="wrap" gap={5}>
+        <ClearTags />
+        {tags.map((tag) => (
+          <Tag key={tag} tag={tag} />
+        ))}
+      </Box>
+    </Box>
+  );
+}
+
+function ClearAll({}: {}) {
+  const { query, setQuery } = useQuery();
+  const active = deepEqual(query, nullQuery);
+  const clear = useCallback(() => {
+    setQuery(nullQuery);
+  }, [setQuery]);
+  return (
+    <Box
+      as="button"
+      onClick={clear}
+      color={active ? "active" : undefined}
+    >
+      Clear
+    </Box>
+  );
+}
+
+function ButtonBox({ children, ...props }: { children: ReactNode } & BoxProps) {
+  return (
+    <Box
+      display="flex"
+      flexDirection="row"
+      alignItems="center"
+      justifyContent="center"
+      borderRadius={2}
+      backgroundColor="foreground2"
+      px={5}
+      py={2}
+      {...props}
+    >
+      {children}
+    </Box>
+  );
+}
+
+function HiddenButton({ children }: { children: ReactNode }) {
+  const {
+    query,
+    setQuery,
+    restrict: { hidden },
+  } = useQuery();
+  const { filter } = query;
+  const active = filter.hidden;
+  const onClick = useCallback(() => {
+    setQuery({ ...query, filter: { ...filter, hidden: !active } });
+  }, [active, filter, query, setQuery]);
+  if (hidden)
+    return (
+      <Box as="button" color={active ? "active" : undefined} onClick={onClick}>
+        {children}
+      </Box>
+    );
+  return <Box>{children}</Box>;
+}
+
+function Hidden({}: {}) {
+  const {
+    restrict: { hidden },
+  } = useQuery();
+  return <HiddenButton>{`${hidden} hidden`}</HiddenButton>;
+}
+
 export function Notes({}: {}) {
-  const [notes, query] = useQuery();
+  const { notes, query, restrict } = useQuery();
   return (
     <Box
       mx={5}
@@ -250,6 +425,9 @@ export function Notes({}: {}) {
         >
           <Box display="flex" flexDirection="column">
             <H1>Notes</H1>
+            <ClearAll />
+            <Dirs />
+            <Tags />
           </Box>
           <QuerySelector />
         </Box>
@@ -259,8 +437,10 @@ export function Notes({}: {}) {
           justifyContent="flex-end"
           borderWidth={1}
           borderStyle="bottom"
+          gap={5}
         >
-          <Box>{notes.length} entries</Box>
+          <Box>{notes.length} entries,</Box>
+          <Hidden />
         </Box>
         <Box display="flex" flexDirection="column">
           {notes.map((note) => (
@@ -268,7 +448,6 @@ export function Notes({}: {}) {
           ))}
         </Box>
       </Box>
-      <Box>{JSON.stringify(query)}</Box>
     </Box>
   );
 }

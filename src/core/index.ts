@@ -1,4 +1,4 @@
-import { IFilter } from "./filters";
+import { IFilter, nullFilter } from "./filters";
 import {
   isDateField,
   isDateRangeField,
@@ -11,6 +11,11 @@ export interface IQuery {
   sort: ISort;
   filter: IFilter;
 }
+
+export const nullQuery: IQuery = {
+  sort: nullSort,
+  filter: nullFilter,
+};
 
 export function setSort(query: IQuery, sort: ISort): IQuery {
   const { field } = sort;

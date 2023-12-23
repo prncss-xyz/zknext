@@ -20,11 +20,16 @@ function useQueried(notes: INote[]) {
     filter: nullFilter,
     sort: nullSort,
   });
-  const sorted = useMemo(
-    () => notes.filter(() => true).sort(getSorter(query.sort)),
-    [notes, query.sort],
-  );
-  return [sorted, query, setQuery] as const;
+  const { queried, restrict } = useMemo(() => {
+    const { notes: queried, restrict } = applyFilter(
+      nullApplyFilterOpts,
+      query.filter,
+      notes,
+    );
+    queried.sort(getSorter(query.sort));
+    return { queried, restrict };
+  }, [notes, query.filter, query.sort]);
+  return { notes: queried, query, setQuery, restrict } as const;
 }
 
 const QueryContext = createContext<ReturnType<typeof useQueried> | null>(null);
@@ -50,10 +55,10 @@ export function QueryProvider({
 }
 
 export function stringifySort(sort: ISort) {
-  return JSON.stringify(sort)
+  return JSON.stringify(sort);
 }
 
 export function destringifySort(str: string): ISort {
   // TODO: runtime check
-  return JSON.parse(str) as ISort
+  return JSON.parse(str) as ISort;
 }

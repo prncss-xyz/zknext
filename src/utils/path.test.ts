@@ -5,6 +5,10 @@ describe("contains", () => {
     expect(contains("", "")).toBe(true);
     expect(contains("", "a")).toBe(true);
   });
+  test("dir contains itself", () => {
+    expect(contains("a", "a")).toBe(true);
+    expect(contains("a/b", "a/b")).toBe(true);
+  });
   test("subdir contains parent", () => {
     expect(contains("a", "a/b")).toBe(true);
     expect(contains("a/b", "a/b/c")).toBe(true);

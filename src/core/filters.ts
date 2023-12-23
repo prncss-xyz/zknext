@@ -5,7 +5,7 @@ function filterDateRange(
   query: { lte?: Date; gte?: Date } | undefined,
   value: IDateRange | null,
 ) {
-  if (query === undefined) return true;
+  if (!query) return true;
   if (value === null) return false;
   if (query.gte && value.end && query.gte > value.end) return false;
   if (query.lte && value.start && query.lte < value.start) return false;
@@ -13,7 +13,7 @@ function filterDateRange(
 }
 
 function filterOrder<T>(query: { lte?: T; gte?: T } | undefined, value: T) {
-  if (query === undefined) return true;
+  if (!query) return true;
   if (value === undefined || value === null) return false;
   if (query.gte && !(value >= query.gte)) return false;
   if (query.lte && !(value <= query.lte)) return false;
@@ -24,6 +24,17 @@ interface IDateRangeFilter {
   lte?: Date;
   gte?: Date;
 }
+
+interface INotesView {
+  type: "notes";
+}
+
+interface IKanbanView {
+  type: "kanban";
+  kanban: string;
+}
+
+type View = INotesView | IKanbanView;
 
 interface IBaseFilter {
   // actually the dir an id will be checked against
@@ -39,7 +50,7 @@ interface IBaseFilter {
     lte?: number;
     gte?: number;
   };
-  kanban: string;
+  view: View;
   tags: string[];
 }
 
@@ -53,7 +64,7 @@ export const existsFilter: IBaseFilter = {
   until: {},
   event: {},
   wordcount: {},
-  kanban: "",
+  view: { type: "notes" },
   tags: [],
 };
 
@@ -62,7 +73,7 @@ export const nullBaseFilter: IBaseFilter = {
   title: "",
   asset: "",
   tags: [],
-  kanban: "",
+  view: { type: "notes" },
 };
 
 export interface IFilter extends IBaseFilter {
@@ -85,7 +96,7 @@ export const nullApplyFilterOpts: ApplyFilterOpts = {
   kanbans: {},
 };
 
-function filterNote(note: INote, filter: IBaseFilter, opts: ApplyFilterOpts) {
+function filterNote(opts: ApplyFilterOpts, filter: IBaseFilter, note: INote) {
   if (!contains(filter.id, note.id)) return false;
   if (
     filter.tags.length > 0 &&
@@ -93,8 +104,8 @@ function filterNote(note: INote, filter: IBaseFilter, opts: ApplyFilterOpts) {
   )
     return false;
   if (
-    filter.kanban &&
-    !opts.kanbans[filter.kanban]?.some((tag) =>
+    filter.view.type === "kanban" &&
+    !opts.kanbans[filter.view.kanban]?.some((tag) =>
       note.tags.some((_tag) => contains(tag, _tag)),
     )
   )
@@ -110,24 +121,36 @@ function filterNote(note: INote, filter: IBaseFilter, opts: ApplyFilterOpts) {
 
 export function applyFilter(
   opts: ApplyFilterOpts,
-  notes: Map<string, INote>,
   filter: IFilter,
+  notes: INote[],
 ) {
   const res = new Set<INote>();
   const dirRes = new Set<string>();
   const tagRes = new Set<string>();
+  let event = false;
+  let since = false;
+  let due = false;
+  let until = false;
   let hidden = 0;
   for (const note of notes.values()) {
-    if (!filterNote(note, filter, opts)) continue;
-    if (!filter.hidden && opts.hidden && filterNote(note, opts.hidden, opts)) {
+    if (!filterNote(opts, filter, note)) continue;
+    if (opts.hidden && filterNote(opts, opts.hidden, note)) {
       ++hidden;
-      continue;
+      if (!filter.hidden) {
+        continue;
+      }
     }
+    event ||= Boolean(note.event);
+    since ||= Boolean(note.since);
+    due ||= Boolean(note.due);
+    until ||= Boolean(note.until);
     // the note is fullfilling the filter
     res.add(note);
     // data for possible filter expensions
     for (const tag of note.tags)
       for (const upTag of upDirs(true, tag)) tagRes.add(upTag);
+    // empty tag do not makes sense
+    tagRes.delete("");
     for (const dir of upDirs(false, note.id)) dirRes.add(dir);
   }
 
@@ -141,13 +164,17 @@ export function applyFilter(
 
   // serialize results
   const restrict = {
-    dirs: Array.from(dirRes).sort(),
+    ids: Array.from(dirRes).sort(),
     tags: Array.from(tagRes).sort(),
     kanbans: Array.from(kanbanRes).sort(),
+    event,
+    since,
+    until,
+    due,
+    hidden,
   };
   return {
     notes: notesOut,
     restrict,
-    hidden,
   };
 }
