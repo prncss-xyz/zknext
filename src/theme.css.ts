@@ -34,6 +34,7 @@ globalStyle("button:focus-visible", {
 });
 
 globalStyle("body", {
+  fontSize: 16,
   backgroundColor: vars.colors.background,
   color: vars.colors.text,
 });

@@ -53,12 +53,3 @@ export function QueryProvider({
     </QueryContext.Provider>
   );
 }
-
-export function stringifySort(sort: ISort) {
-  return JSON.stringify(sort);
-}
-
-export function destringifySort(str: string): ISort {
-  // TODO: runtime check
-  return JSON.parse(str) as ISort;
-}

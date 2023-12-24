@@ -4,7 +4,6 @@ import {
   isDateField,
   isDateRangeField,
   isNumberField,
-  optFields,
 } from "./note";
 import { ISort, OrderField, nullSort } from "./sorters";
 
@@ -18,13 +17,25 @@ export const nullQuery: IQuery = {
   filter: nullFilter,
 };
 
+export function isActiveField(query: IQuery, field: OrderField) {
+  const { filter } = query;
+  return Boolean(filter[field]);
+}
+
+export function activateField(query: IQuery, field: OrderField) {
+  if (!isActiveField(query, field)) {
+    return { ...query, filter: { ...query.filter, [field]: {} } };
+  }
+  return query;
+}
+
+export function deActivateField(query: IQuery, field: OrderField) {
+  return { ...query, filter: { ...query.filter, [field]: null } };
+}
+
 export function setSort(query: IQuery, sort: ISort): IQuery {
   const { field } = sort;
-  const { filter } = query;
-  if (optFields.includes(field) && !(filter as any)[field]) {
-    (filter as any)[field] = {};
-  }
-  return { filter, sort };
+  return { ...activateField(query, field), sort };
 }
 
 export function setFilter(

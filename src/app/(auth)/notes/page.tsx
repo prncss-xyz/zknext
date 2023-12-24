@@ -1,7 +1,8 @@
 import { getNotes } from "@/server/actions";
-import { Notes } from "./entries";
+import { Notes } from "./notes";
 import { NoteOverlayProvider } from "@/app/(auth)/notes/noteOverlay";
 import { QueryProvider } from "./query";
+import { Overlay } from "./note";
 
 // this prevents scanning notes directory at build time
 export const dynamic = "force-dynamic";
@@ -11,6 +12,7 @@ export default async function Page({}: {}) {
   return (
     <QueryProvider notes={notes}>
       <NoteOverlayProvider>
+        <Overlay />
         <Notes />
       </NoteOverlayProvider>
     </QueryProvider>

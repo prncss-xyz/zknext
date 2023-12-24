@@ -59,7 +59,6 @@ export const existsFilter: IBaseFilter = {
   title: "",
   asset: "",
   mtime: {},
-  due: {},
   since: {},
   until: {},
   event: {},

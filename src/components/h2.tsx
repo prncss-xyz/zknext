@@ -1,6 +1,10 @@
 import { ReactNode } from "react";
-import { Box } from "./box";
+import { Box, BoxProps } from "./box";
 
-export function H2({children}: {children: ReactNode}) {
-  return <Box mb={10} fontWeight="bold">{children}</Box>;
+export function H2({ children, ...props }: { children: ReactNode } & BoxProps) {
+  return (
+    <Box mb={10} fontWeight="bold" {...props}>
+      {children}
+    </Box>
+  );
 }

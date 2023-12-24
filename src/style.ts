@@ -3,7 +3,9 @@ export const space = [0, 2, 5, 10, 20, 40] as const;
 export const sizes = {
   screenMaxWidth: 800,
   labelWidth: 100,
-  navCheckboxWidth: 15,
+  buttonHeight: 20,
+  navCheckboxWidth : 15,
+  fieldWidth: 100,
   navInputWidth: 160,
   "100%": "100%",
   "100vh": "100vh",
@@ -12,7 +14,9 @@ export const sizes = {
   overlayNoteWidth: 400,
 };
 
-export const fontSizes = [] as const;
+export const fontSizes = [
+  12, 14, 16, 18, 20, 24, 30, 36, 48, 60, 72, 96, 128,
+] as const;
 
 export const borderRadii = [0, 2, 5, 10] as const;
 

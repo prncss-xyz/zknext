@@ -6,19 +6,19 @@ import { getFiles } from "./files";
 import path from "path/posix";
 import { readFile, stat } from "node:fs/promises";
 import { INote } from "@/core/note";
-import { Errable, Failure } from "@/utils/errable";
+import { Errable, failure } from "@/utils/errable";
 
 @injectable()
 export class RepoLive implements IRepo {
   @inject(ConfigType) private config!: IConfig;
   @inject(NoteType) private note!: INoteFile;
   public async getNote(id: string) {
-    return (await this.getIdToMeta()).get(id) ?? Failure("nofile");
+    return (await this.getIdToMeta()).get(id) ?? failure("nofile");
   }
   public async getHTML(id: string, document: boolean) {
     const idToMeta = await this.getIdToMeta();
     const metaRequest = idToMeta.get(id);
-    if (!metaRequest) return Failure("nofile");
+    if (!metaRequest) return failure("nofile");
     if (metaRequest._tag === "failure") return metaRequest;
     const { notebookDir } = await this.config.getConfig();
     const fullPath = path.join(notebookDir, id);

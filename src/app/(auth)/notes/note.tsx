@@ -14,16 +14,31 @@ import { ReactNode, useCallback } from "react";
 import { NoteContents } from "./noteContents";
 import { useNoteOverlay } from "./noteOverlay";
 import { useQuery } from "./query";
+import {
+  LuChevronFirst,
+  LuChevronLast,
+  LuChevronLeft,
+  LuChevronRight,
+  LuX,
+} from "react-icons/lu";
 
 function Dir({ dir }: { dir: string }) {
   const [_, setId] = useNoteOverlay();
-  const { setQuery } = useQuery();
-  const onClick = useCallback(() => {
+  const { query, setQuery } = useQuery();
+  const { filter } = query;
+  const { id: current } = filter;
+  const active = dir === current;
+  const activate = useCallback(() => {
     setQuery({ ...nullQuery, filter: { ...nullFilter, id: dir } });
     setId("");
   }, [dir, setId, setQuery]);
   return (
-    <Box as="button" fontFamily="monospace" onClick={onClick}>
+    <Box
+      as="button"
+      fontFamily="monospace"
+      color={active ? "active" : undefined}
+      onClick={activate}
+    >
       {basename(dir)}
     </Box>
   );
@@ -37,7 +52,18 @@ function Tag({ tag }: { tag: string }) {
     setId("");
   }, [setId, setQuery, tag]);
   return (
-    <Box as="button" onClick={onClick}>
+    <Box
+      as="button"
+      onClick={onClick}
+      display="flex"
+      flexDirection="row"
+      alignItems="baseline"
+      justifyContent="center"
+      borderRadius={2}
+      backgroundColor="foreground2"
+      px={5}
+      height="buttonHeight"
+    >
       {tag}
     </Box>
   );
@@ -87,7 +113,7 @@ function Orders({ note }: { note: INote }) {
 function NoteHeader({ note }: { note: INote }) {
   return (
     <Box display="flex" flexDirection="column">
-      <Box display="flex" flexDirection="row" alignItems="center" gap={5}>
+      <Box display="flex" flexDirection="row" alignItems="baseline" gap={5}>
         {upDirs(false, note.id)
           .slice(1)
           .map((dir) => (
@@ -98,7 +124,7 @@ function NoteHeader({ note }: { note: INote }) {
           ))}
         <Box fontFamily="monospace">{basename(note.id)}</Box>
       </Box>
-      <Box display="flex" flexDirection="row" gap={5}>
+      <Box display="flex" flexDirection="row" alignItems="baseline" gap={5}>
         {note.tags.map((tag) => (
           <Tag key={tag} tag={tag} />
         ))}
@@ -154,11 +180,21 @@ function Nav({}: {}) {
   if (index === -1) return;
   return (
     <Box display="flex" flexDirection="row" justifyContent="flex-end" gap={5}>
-      <ToNoteOpt target={notes[0]?.id}>first</ToNoteOpt>
-      <ToNoteOpt target={notes[index - 1]?.id}>prev</ToNoteOpt>
-      <ToNoteOpt target={notes[index + 1]?.id}>next</ToNoteOpt>
-      <ToNoteOpt target={notes.at(-1)?.id}>last</ToNoteOpt>
-      <ToNoteOpt target="">close</ToNoteOpt>
+      <ToNoteOpt target={notes[0]?.id}>
+        <LuChevronFirst />
+      </ToNoteOpt>
+      <ToNoteOpt target={notes[index - 1]?.id}>
+        <LuChevronLeft />
+      </ToNoteOpt>
+      <ToNoteOpt target={notes[index + 1]?.id}>
+        <LuChevronRight />
+      </ToNoteOpt>
+      <ToNoteOpt target={notes.at(-1)?.id}>
+        <LuChevronLast />
+      </ToNoteOpt>
+      <ToNoteOpt target="">
+        <LuX />
+      </ToNoteOpt>
     </Box>
   );
 }
@@ -176,14 +212,14 @@ function Note({}: {}) {
     <Box
       ref={ref}
       width="overlayNoteWidth"
-      display="flex"
-      flexDirection="column"
       backgroundColor="foreground1"
+      borderColor="background"
       borderRadius={10}
       borderStyle="all"
-      borderColor="background"
       borderWidth={2}
       p={10}
+      display="flex"
+      flexDirection="column"
       gap={5}
     >
       <Nav />
