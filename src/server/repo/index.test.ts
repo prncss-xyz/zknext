@@ -53,14 +53,14 @@ describe("notesLive", () => {
   describe("getNote", () => {
     it("should fail when there is no file", async () => {
       const notes = getContainerNotes();
-      expect(await notes.getNote("999.md")).toEqual(new Failure("nofile"));
+      expect(await notes.getNote("999.md")).toEqual(Failure("nofile"));
     });
   });
   describe("getHTML", () => {
     const notes = getContainerNotes();
     it("should fail when there is no file", async () => {
       expect(await notes.getHTML("999.md", true)).toEqual(
-        new Failure("nofile"),
+        Failure("nofile"),
       );
     });
     it("should parse file to HTML document", async () => {

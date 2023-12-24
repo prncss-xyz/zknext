@@ -1,31 +1,24 @@
 export const space = [0, 2, 5, 10, 20, 40] as const;
 
-const paneWidth = 250;
-
 export const sizes = {
-  paneWidth,
-  paneWidthComplement: `calc(100vw - ${paneWidth}px - 20px)`,
-  galleryImage: 150,
-  noteAssetHeight: 300,
   screenMaxWidth: 800,
-  kanbanWidth: 200,
-  labelWidth: 120,
+  labelWidth: 100,
   navCheckboxWidth: 15,
   navInputWidth: 160,
-  navLabelWidth: 100,
   "100%": "100%",
   "100vh": "100vh",
   "100vw": "100vw",
   menuIcon: 30,
+  overlayNoteWidth: 400,
 };
 
 export const fontSizes = [] as const;
 
-export const borderRadii = [0, 2, 5] as const;
+export const borderRadii = [0, 2, 5, 10] as const;
 
 export const fontWeights = { bold: 700 };
 
-export const borderWidths = [0, 1, 2] as const;
+export const borderWidths = [0, 1, 2, 5] as const;
 
 // this is used to set up theme vars; what is not defined in _dark defaults to values from _light
 // don't these values directly, use sprinkles or vars.colors from theme.css instead

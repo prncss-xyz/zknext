@@ -7,32 +7,33 @@ import {
   CheckIcon,
   Cross2Icon,
 } from "@radix-ui/react-icons";
-import {
-  useQuery,
-  destringifySort,
-  stringifySort,
-} from "@/app/components/notes";
+import { useQuery, destringifySort, stringifySort } from "./query";
 import { Box, BoxProps } from "@/components/box";
 import { INote, isStringField, optFields } from "@/core/note";
-import { Link } from "@/components/link";
 import { ReactNode, useCallback, useEffect, useState } from "react";
 import { OrderField } from "@/core/sorters";
-import { selector } from "./entries.css";
 import { H1 } from "@/components/h1";
 import { H2 } from "@/components/h2";
 import { getBound, isValidBound, nullQuery, setBound, setFilter } from "@/core";
 import { contains } from "@/utils/path";
 import { toggle } from "@/utils/arrays";
 import { deepEqual } from "fast-equals";
+import { useNoteOverlay } from "./noteOverlay";
+import { Overlay } from "./note";
 
 function Entry({ note }: { note: INote }) {
+  const [id, setId] = useNoteOverlay();
+  const open = useCallback(() => setId(note.id), [note.id, setId]);
+  const active = id === note.id;
   return (
-    <Link
-      href={`/notes/${note.id}`}
+    <Box
+      as="button"
+      onClick={open}
       fontFamily={note.title ? undefined : "monospace"}
+      color={active ? "active" : undefined}
     >
       {note.title ?? note.id}
-    </Link>
+    </Box>
   );
 }
 
@@ -138,7 +139,12 @@ function QueryCheckBox({ field }: { field: OrderField }) {
       onCheckedChange={setChecked as any}
       asChild
     >
-      <SmallButton borderStyle="all" borderWidth={1} my={2}>
+      <SmallButton
+        color={checked ? "active" : undefined}
+        borderStyle="all"
+        borderWidth={1}
+        my={2}
+      >
         <Checkbox.Indicator>
           <CheckIcon />
         </Checkbox.Indicator>
@@ -174,6 +180,10 @@ function SortSelectorField({
   field: OrderField;
   asc: boolean;
 }) {
+  const {
+    query: { sort },
+  } = useQuery();
+  const active = deepEqual(sort, { field, asc });
   return (
     <ToggleGroup.Item
       value={stringifySort({
@@ -182,7 +192,7 @@ function SortSelectorField({
       })}
       asChild
     >
-      <SmallButton className={selector}>
+      <SmallButton color={active ? "active" : undefined}>
         {asc ? <CaretUpIcon /> : <CaretDownIcon />}
       </SmallButton>
     </ToggleGroup.Item>
@@ -313,8 +323,9 @@ function ClearTags({}: {}) {
       filter: { ...filter, tags: [] },
     });
   }, [filter, query, setQuery]);
+  const active = deepEqual(filter.tags, []);
   return (
-    <Box as="button" onClick={clear}>
+    <Box as="button" onClick={clear} color={active ? "active" : undefined}>
       <Cross2Icon />
     </Box>
   );
@@ -344,11 +355,7 @@ function ClearAll({}: {}) {
     setQuery(nullQuery);
   }, [setQuery]);
   return (
-    <Box
-      as="button"
-      onClick={clear}
-      color={active ? "active" : undefined}
-    >
+    <Box as="button" onClick={clear} color={active ? "active" : undefined}>
       Clear
     </Box>
   );
@@ -400,7 +407,7 @@ function Hidden({}: {}) {
 }
 
 export function Notes({}: {}) {
-  const { notes, query, restrict } = useQuery();
+  const { notes } = useQuery();
   return (
     <Box
       mx={5}
@@ -409,6 +416,7 @@ export function Notes({}: {}) {
       flexDirection="column"
       alignItems="center"
     >
+      <Overlay />
       <Box
         display="flex"
         flexDirection="column"

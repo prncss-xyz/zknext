@@ -15,6 +15,12 @@ export function upDirs(incl: boolean, id: string) {
   return res;
 }
 
+export function basename(filepath: string) {
+  const index = filepath.lastIndexOf(sep);
+  if (index === -1) return filepath;
+  return filepath.slice(index + sep.length);
+}
+
 export function dirname(filepath: string) {
   const index = filepath.lastIndexOf(sep);
   if (index === -1) return "";

@@ -1,3 +1,4 @@
+import { parseDate, formatDate } from "@/utils/dates";
 import { IFilter, nullFilter } from "./filters";
 import {
   isDateField,
@@ -92,23 +93,6 @@ export function setBound(
     return { ...query, filter: { ...query.filter, [field]: range } };
   }
   return query;
-}
-
-function padTo2Digits(num: number) {
-  return num.toString().padStart(2, "0");
-}
-
-function formatDate(date: Date) {
-  return [
-    date.getFullYear(),
-    padTo2Digits(date.getMonth() + 1),
-    padTo2Digits(date.getDate()),
-  ].join("-");
-}
-
-function parseDate(s: string) {
-  let [y, m, d] = s.split(/\D/).map((s) => parseInt(s));
-  return new Date(y, (m ?? 1) - 1, d ?? 1);
 }
 
 export function getBound(query: IQuery, field: OrderField, start: boolean) {
