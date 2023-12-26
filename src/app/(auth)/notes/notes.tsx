@@ -1,11 +1,12 @@
 "use client";
 
+import * as O from "optics-ts";
 import { LuChevronUp, LuChevronDown, LuCheck } from "react-icons/lu";
 import { useQuery } from "./query";
 import { Box } from "@/components/box";
 import { INote, isStringField, optFields } from "@/core/note";
-import { ReactNode, useCallback, useEffect, useState } from "react";
-import { OrderField } from "@/core/sorters";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { ISort, OrderField } from "@/core/sorters";
 import {
   isActiveField,
   getBound,
@@ -14,15 +15,17 @@ import {
   setBound,
   activateField,
   deActivateField,
+  IQuery,
 } from "@/core";
-import { toggle } from "@/utils/arrays";
-import { deepEqual } from "fast-equals";
 import { useNoteOverlay } from "./noteOverlay";
 import { Clear } from "@/components/clear";
 import { RoundedButtonOpt } from "@/components/roundedButtonOpt";
 import { Label } from "@/components/label";
 import { SmallButtonOpt } from "@/components/smallButtonOpt";
 import { ButtonOpt } from "@/components/buttonOpt";
+import { InputTest } from "@/components/inputTest";
+import { useNavLens, useToggleLens } from "@/components/optics";
+import { getOId, getOMember } from "@/utils/optics";
 
 function Entry({ note }: { note: INote }) {
   const [id, setId] = useNoteOverlay();
@@ -31,11 +34,53 @@ function Entry({ note }: { note: INote }) {
   return (
     <ButtonOpt
       active={active}
-      activate={activate}
+      navigate={activate}
       fontFamily={note.title ? undefined : "monospace"}
     >
       {note.title ?? note.id}
     </ButtonOpt>
+  );
+}
+
+function Bound_({ field, start }: { field: OrderField; start: boolean }) {
+  const { query, setQuery } = useQuery();
+  const bound = getBound(query, field, start);
+  const [value, setValue] = useState(bound);
+  // this is needed beacuse the contents of bound can be either last edited contents or a value corresponding to last update of query
+  useEffect(() => {
+    setValue(bound);
+  }, [bound]);
+  const valid = isValidBound(field, value);
+  const register = useCallback(() => {
+    if (!value) return;
+    setQuery(setBound(query, field, start, value));
+  }, [field, query, setQuery, start, value]);
+  const keyDownHandler = useCallback(
+    (event: any) => {
+      const key: string = event.key;
+      if (key !== "Enter") return;
+      register();
+    },
+    [register],
+  );
+  if (isStringField(field)) return <Box width="navInputWidth" />;
+  return (
+    <Box
+      as="input"
+      color={valid ? "muted" : "error"}
+      width="navInputWidth"
+      textAlign="center"
+      backgroundColor="foreground2"
+      borderRadius={2}
+      px={2}
+      value={value}
+      onKeyDown={keyDownHandler}
+      onChange={(e: any) => {
+        const value_ = String(e.target.value);
+        return setValue(value_);
+      }}
+      onBlur={register}
+    />
   );
 }
 
@@ -84,21 +129,19 @@ function Bound({ field, start }: { field: OrderField; start: boolean }) {
 function QueryCheckBox({ field }: { field: OrderField }) {
   const { query, setQuery } = useQuery();
   const active = isActiveField(query, field);
-  const activate = useCallback(
-    () => setQuery(activateField(query, field)),
-    [field, query, setQuery],
-  );
-  const deActivate = useCallback(
-    () => setQuery(deActivateField(query, field)),
-    [field, query, setQuery],
+  const toggle = useCallback(
+    () =>
+      active
+        ? setQuery(deActivateField(query, field))
+        : setQuery(activateField(query, field)),
+    [active, field, query, setQuery],
   );
   if (!optFields.includes(field) || field === "title")
     return <SmallButtonOpt />;
   return (
     <SmallButtonOpt
       active={active}
-      activate={activate}
-      deActivate={deActivate}
+      toggle={toggle}
       borderStyle="all"
       borderWidth={1}
       my={2}
@@ -111,23 +154,13 @@ function QueryCheckBox({ field }: { field: OrderField }) {
   );
 }
 
-function SortSelectorField({
-  field,
-  asc,
-}: {
-  field: OrderField;
-  asc: boolean;
-}) {
+const oSort = O.optic<IQuery>().prop("sort");
+function SortSelectorField(sort: ISort) {
   const { query, setQuery } = useQuery();
-  const { sort } = query;
-  const active = deepEqual(sort, { field, asc });
-  const activate = useCallback(
-    () => setQuery({ ...query, sort: { field, asc } }),
-    [asc, field, query, setQuery],
-  );
+  const { active, navigate } = useNavLens(sort, oSort, [query, setQuery]);
   return (
-    <SmallButtonOpt active={active} activate={activate}>
-      {asc ? <LuChevronUp /> : <LuChevronDown />}
+    <SmallButtonOpt active={active} navigate={navigate}>
+      {sort.asc ? <LuChevronUp /> : <LuChevronDown />}
     </SmallButtonOpt>
   );
 }
@@ -175,42 +208,23 @@ function QuerySelector({}: {}) {
   );
 }
 
+const oDir = O.optic<IQuery>().path("filter.id");
 function Dir({ dir }: { dir: string }) {
   const { query, setQuery } = useQuery();
-  const { filter } = query;
-  const { id: current } = filter;
-  const active = dir === current;
-  const activate = useCallback(() => {
-    setQuery({ ...query, filter: { ...filter, id: dir } });
-  }, [filter, dir, query, setQuery]);
-  if (dir === "") return <Clear active={active} activate={activate} />;
+  const params = useNavLens(dir, oDir, [query, setQuery]);
+  if (dir === "") return <Clear {...params} />;
   return (
-    <RoundedButtonOpt
-      active={active}
-      activate={activate}
-      fontFamily="monospace"
-    >
+    <RoundedButtonOpt {...params} fontFamily="monospace">
       {dir}
     </RoundedButtonOpt>
   );
 }
 
 function Tag({ tag }: { tag: string }) {
+  const oTag = useMemo(() => O.compose(oTags, getOMember(tag)), [tag]);
   const { query, setQuery } = useQuery();
-  const { filter } = query;
-  const { tags } = filter;
-  const active = tags.includes(tag);
-  const handler = useCallback(() => {
-    setQuery({
-      ...query,
-      filter: { ...filter, tags: toggle(tags, tag, !active) },
-    });
-  }, [active, filter, query, setQuery, tag, tags]);
-  return (
-    <RoundedButtonOpt active={active} toggle={handler}>
-      {tag}
-    </RoundedButtonOpt>
-  );
+  const props = useToggleLens(oTag, [query, setQuery]);
+  return <RoundedButtonOpt {...props}>{tag}</RoundedButtonOpt>;
 }
 
 function Dirs({}: {}) {
@@ -233,17 +247,11 @@ function Dirs({}: {}) {
   );
 }
 
+const oTags = O.optic<IQuery>().path("filter.tags");
 function ClearTags({}: {}) {
   const { query, setQuery } = useQuery();
-  const { filter } = query;
-  const clear = useCallback(() => {
-    setQuery({
-      ...query,
-      filter: { ...filter, tags: [] },
-    });
-  }, [filter, query, setQuery]);
-  const active = deepEqual(filter.tags, []);
-  return <Clear active={active} activate={clear} />;
+  const params = useNavLens([], oTags, [query, setQuery]);
+  return <Clear {...params} />;
 }
 
 function Views({}: {}) {
@@ -255,19 +263,13 @@ function Views({}: {}) {
   );
 }
 
+const oView = O.optic<IQuery>().path("filter.view");
+
 function KanbanView({ kanban }: { kanban: string }) {
   const { query, setQuery } = useQuery();
-  const activate = useCallback(() => {
-    setQuery({
-      ...query,
-      filter: { ...query.filter, view: { type: "kanban", kanban } },
-    });
-  }, [kanban, query, setQuery]);
-  return (
-    <Box as="button" onClick={activate}>
-      {kanban}
-    </Box>
-  );
+  const target = useMemo(() => ({ type: "kanban" as const, kanban }), [kanban]);
+  const params = useNavLens(target, oView, [query, setQuery]);
+  return <ButtonOpt {...params}>{kanban}</ButtonOpt>;
 }
 
 function KanbanViews({}: {}) {
@@ -285,19 +287,13 @@ function KanbanViews({}: {}) {
   );
 }
 
+const notesViewTarget = { type: "notes" as const };
 function NoteViews({}: {}) {
   const { query, setQuery } = useQuery();
-  const active = query.filter.view.type === "notes";
-  const activate = useCallback(() => {
-    setQuery({
-      ...query,
-      filter: { ...query.filter, view: { type: "notes" } },
-    });
-  }, [query, setQuery]);
+  const params = useNavLens(notesViewTarget, oView, [query, setQuery]);
   return (
     <ButtonOpt
-      active={active}
-      activate={activate}
+      {...params}
       display="flex"
       flexDirection="row"
       alignItems="baseline"
@@ -330,31 +326,18 @@ function Tags({}: {}) {
   );
 }
 
+const oId = getOId<IQuery>();
 function ClearAll({}: {}) {
   const { query, setQuery } = useQuery();
-  const active = deepEqual(query, nullQuery);
-  const clear = useCallback(() => {
-    setQuery(nullQuery);
-  }, [setQuery]);
-  return (
-    <ButtonOpt active={active} activate={clear}>
-      Reset
-    </ButtonOpt>
-  );
+  const params = useNavLens(nullQuery, oId, [query, setQuery]);
+  return <ButtonOpt {...params}>Reset</ButtonOpt>;
 }
 
+const oHidden = O.optic<IQuery>().path("filter.hidden");
 function HiddenButton({ children }: { children: ReactNode }) {
-  const {
-    query,
-    setQuery,
-    restrict: { hidden },
-  } = useQuery();
-  const { filter } = query;
-  const active = filter.hidden;
-  const toggle = useCallback(() => {
-    setQuery({ ...query, filter: { ...filter, hidden: !active } });
-  }, [active, filter, query, setQuery]);
-  if (hidden) return <ButtonOpt toggle={toggle}>{children}</ButtonOpt>;
+  const { query, setQuery, restrict } = useQuery();
+  const params = useToggleLens(oHidden, [query, setQuery]);
+  if (restrict.hidden) return <ButtonOpt {...params}>{children}</ButtonOpt>;
   return <Box>{children}</Box>;
 }
 
@@ -397,8 +380,6 @@ export function Notes({}: {}) {
           </Box>
           <QuerySelector />
         </Box>
-        {JSON.stringify(query)}
-        {JSON.stringify(isActiveField(query, "due"))}
         <Box
           display="flex"
           flexDirection="row"

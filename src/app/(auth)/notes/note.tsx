@@ -1,11 +1,11 @@
 "use client";
+import * as O from "optics-ts";
 
 import { Box, BoxProps } from "@/components/box";
 import { useClickOutside } from "@/components/clickOutside";
 import { overlay } from "@/components/overlay.css";
-import { nullQuery } from "@/core";
-import { nullFilter } from "@/core/filters";
-import { IDateRange, INote } from "@/core/note";
+import { IQuery, nullQuery } from "@/core";
+import { IDateRange, INote, NumberField } from "@/core/note";
 import { OrderField } from "@/core/sorters";
 import { formatDateTime } from "@/utils/dates";
 import { upDirs } from "@/utils/path";
@@ -22,33 +22,29 @@ import {
   LuX,
 } from "react-icons/lu";
 
+const oDir = O.optic<IQuery>().path("filter.id");
 function Dir({ dir }: { dir: string }) {
   const [_, setId] = useNoteOverlay();
-  const { query, setQuery } = useQuery();
-  const { filter } = query;
-  const { id: current } = filter;
-  const active = dir === current;
-  const activate = useCallback(() => {
-    setQuery({ ...nullQuery, filter: { ...nullFilter, id: dir } });
+  const { setQuery } = useQuery();
+  const onClick = useCallback(() => {
+    const target = O.set(oDir)(dir)(nullQuery);
+    setQuery(target);
     setId("");
   }, [dir, setId, setQuery]);
   return (
-    <Box
-      as="button"
-      fontFamily="monospace"
-      color={active ? "active" : undefined}
-      onClick={activate}
-    >
+    <Box as="button" fontFamily="monospace" onClick={onClick}>
       {basename(dir)}
     </Box>
   );
 }
 
+const oTags = O.optic<IQuery>().path("filter.tags");
 function Tag({ tag }: { tag: string }) {
   const [_, setId] = useNoteOverlay();
   const { setQuery } = useQuery();
   const onClick = useCallback(() => {
-    setQuery({ ...nullQuery, filter: { ...nullFilter, tags: [tag] } });
+    const target = O.set(oTags)([tag])(nullQuery);
+    setQuery(target);
     setId("");
   }, [setId, setQuery, tag]);
   return (
@@ -86,6 +82,17 @@ function OrderValue({ value }: { value: string | number | Date | IDateRange }) {
 }
 
 function Order({ field, note }: { field: OrderField; note: INote }) {
+  const value = note[field];
+  if (!value) return;
+  return (
+    <Box display="flex" flexDirection="row" gap={5}>
+      <Box width="labelWidth">{field}</Box>
+      <OrderValue value={value} />
+    </Box>
+  );
+}
+
+function OrderNumber({ field, note }: { field: NumberField; note: INote }) {
   const value = note[field];
   if (!value) return;
   return (

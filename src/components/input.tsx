@@ -1,21 +1,19 @@
 import { useCallback, useState, useEffect } from "react";
 import { Box, BoxProps } from "./box";
-import { Errable } from "@/utils/errable";
+import { IEncodec } from "@/core/encodec";
 
 export type InputProps<A> = {
-  encode: (v: A) => string;
-  decode: (e: string) => Errable<A>;
+  encodec: IEncodec<A>;
   value: A;
   setValue: (v: A) => void;
 } & Omit<BoxProps, "as" | "onClick">;
 
-export function Input<A>({
-  encode,
-  decode,
-  value,
-  setValue,
-  ...props
-}: InputProps<A>) {
+type IState<S> = [state: S, setState: (s: S) => void];
+
+function useInput<A>(
+  { encode, decode }: IEncodec<A>,
+  [value, setValue]: IState<A>,
+) {
   const [encoded, setEncoded] = useState(encode(value));
   useEffect(() => {
     setEncoded(encode(value));
@@ -26,20 +24,32 @@ export function Input<A>({
     setEncoded(value_);
   }, []);
   const onBlur = useCallback(() => {
-    if (decoded._tag === "failure") return;
-    setValue(decoded.result);
-    // @ts-expect-error
-  }, [decoded._tag, decoded.result, setValue]);
+    if (decoded === undefined) return;
+    setValue(decoded);
+  }, [decoded, setValue]);
   const onKeyDown = useCallback(
     (event: any) => {
       const key: string = event.key;
       if (key !== "Enter") return;
-      if (decoded._tag === "failure") return;
-      setValue(decoded.result);
+      if (decoded === undefined) return;
+      setValue(decoded);
     },
-    // @ts-expect-error
-    [decoded._tag, decoded.result, setValue],
+    [decoded, setValue],
   );
+  const error = encoded && decoded === undefined;
+  return { encoded, onChange, onBlur, onKeyDown, error };
+}
+
+export function Input<A>({
+  encodec,
+  value,
+  setValue,
+  ...props
+}: InputProps<A>) {
+  const { encoded, onChange, onBlur, onKeyDown, error } = useInput(encodec, [
+    value,
+    setValue,
+  ]);
   return (
     <Box
       as="input"
@@ -47,7 +57,7 @@ export function Input<A>({
       onChange={onChange}
       onBlur={onBlur}
       onKeyDown={onKeyDown}
-      color={decoded._tag === "failure" ? "error" : undefined}
+      color={error ? "error" : undefined}
       {...props}
     />
   );

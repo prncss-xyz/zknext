@@ -1,10 +1,6 @@
 import { parseDate, formatDate } from "@/utils/dates";
 import { IFilter, nullFilter } from "./filters";
-import {
-  isDateField,
-  isDateRangeField,
-  isNumberField,
-} from "./note";
+import { isDateField, isDateRangeField, isNumberField } from "./note";
 import { ISort, OrderField, nullSort } from "./sorters";
 
 export interface IQuery {
