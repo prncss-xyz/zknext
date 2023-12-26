@@ -1,6 +1,43 @@
-import { useMemo, useCallback } from "react";
+import {
+  useMemo,
+  useCallback,
+  useReducer,
+  useState,
+  useEffect,
+  createContext,
+  useContext,
+  ReactNode,
+} from "react";
 import * as O from "optics-ts";
 import { deepEqual } from "fast-equals";
+
+type Dispatch<s> = (u: (s: s) => s) => void;
+function reducer<s>(s: s, u: (s: s) => s) {
+  return u(s);
+}
+
+export function useLensGet<S, T extends O.OpticParams, A>(
+  optic: O.Lens<S, T, A>,
+  state: S,
+) {
+  const value = useMemo(() => O.get(optic)(state), [optic, state]);
+  const [value_, setValue] = useState(value);
+  useEffect(() => {
+    setValue(value);
+  }, [value]);
+  return value_;
+}
+
+export function useLensSet<S, T extends O.OpticParams, A>(
+  optic: O.Lens<S, T, A>,
+  value: A,
+  dispatch: Dispatch<S>,
+) {
+  return useCallback(
+    () => dispatch(O.set(optic)(value)),
+    [dispatch, optic, value],
+  );
+}
 
 export function useLens<S, T extends O.OpticParams, A>(
   optic: O.Lens<S, T, A> | O.Iso<S, T, A>,

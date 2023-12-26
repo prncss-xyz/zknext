@@ -23,9 +23,9 @@ import { RoundedButtonOpt } from "@/components/roundedButtonOpt";
 import { Label } from "@/components/label";
 import { SmallButtonOpt } from "@/components/smallButtonOpt";
 import { ButtonOpt } from "@/components/buttonOpt";
-import { InputTest } from "@/components/inputTest";
 import { useNavLens, useToggleLens } from "@/components/optics";
 import { getOId, getOMember } from "@/utils/optics";
+import { useResults } from "./results";
 
 function Entry({ note }: { note: INote }) {
   const [id, setId] = useNoteOverlay();
@@ -43,7 +43,7 @@ function Entry({ note }: { note: INote }) {
 }
 
 function Bound_({ field, start }: { field: OrderField; start: boolean }) {
-  const { query, setQuery } = useQuery();
+  const [query, setQuery] = useQuery();
   const bound = getBound(query, field, start);
   const [value, setValue] = useState(bound);
   // this is needed beacuse the contents of bound can be either last edited contents or a value corresponding to last update of query
@@ -85,7 +85,7 @@ function Bound_({ field, start }: { field: OrderField; start: boolean }) {
 }
 
 function Bound({ field, start }: { field: OrderField; start: boolean }) {
-  const { query, setQuery } = useQuery();
+  const [query, setQuery] = useQuery();
   const bound = getBound(query, field, start);
   const [value, setValue] = useState(bound);
   // this is needed beacuse the contents of bound can be either last edited contents or a value corresponding to last update of query
@@ -127,7 +127,7 @@ function Bound({ field, start }: { field: OrderField; start: boolean }) {
 }
 
 function QueryCheckBox({ field }: { field: OrderField }) {
-  const { query, setQuery } = useQuery();
+  const [query, setQuery] = useQuery();
   const active = isActiveField(query, field);
   const toggle = useCallback(
     () =>
@@ -156,8 +156,7 @@ function QueryCheckBox({ field }: { field: OrderField }) {
 
 const oSort = O.optic<IQuery>().prop("sort");
 function SortSelectorField(sort: ISort) {
-  const { query, setQuery } = useQuery();
-  const { active, navigate } = useNavLens(sort, oSort, [query, setQuery]);
+  const { active, navigate } = useNavLens(sort, oSort, useQuery());
   return (
     <SmallButtonOpt active={active} navigate={navigate}>
       {sort.asc ? <LuChevronUp /> : <LuChevronDown />}
@@ -185,7 +184,7 @@ function QuerySelectorRow({ field }: { field: OrderField }) {
 function QuerySelector({}: {}) {
   const {
     restrict: { event, due, since, until },
-  } = useQuery();
+  } = useResults();
   return (
     <Box
       p={10}
@@ -210,9 +209,9 @@ function QuerySelector({}: {}) {
 
 const oDir = O.optic<IQuery>().path("filter.id");
 function Dir({ dir }: { dir: string }) {
-  const { query, setQuery } = useQuery();
-  const params = useNavLens(dir, oDir, [query, setQuery]);
+  const params = useNavLens(dir, oDir, useQuery());
   if (dir === "") return <Clear {...params} />;
+  console.log("render Dir")
   return (
     <RoundedButtonOpt {...params} fontFamily="monospace">
       {dir}
@@ -222,15 +221,15 @@ function Dir({ dir }: { dir: string }) {
 
 function Tag({ tag }: { tag: string }) {
   const oTag = useMemo(() => O.compose(oTags, getOMember(tag)), [tag]);
-  const { query, setQuery } = useQuery();
-  const props = useToggleLens(oTag, [query, setQuery]);
+  const props = useToggleLens(oTag, useQuery());
+  console.log("render Tag")
   return <RoundedButtonOpt {...props}>{tag}</RoundedButtonOpt>;
 }
 
 function Dirs({}: {}) {
   const {
     restrict: { ids },
-  } = useQuery();
+  } = useResults();
   return (
     <Box
       display="flex"
@@ -249,8 +248,7 @@ function Dirs({}: {}) {
 
 const oTags = O.optic<IQuery>().path("filter.tags");
 function ClearTags({}: {}) {
-  const { query, setQuery } = useQuery();
-  const params = useNavLens([], oTags, [query, setQuery]);
+  const params = useNavLens([], oTags, useQuery());
   return <Clear {...params} />;
 }
 
@@ -266,9 +264,8 @@ function Views({}: {}) {
 const oView = O.optic<IQuery>().path("filter.view");
 
 function KanbanView({ kanban }: { kanban: string }) {
-  const { query, setQuery } = useQuery();
   const target = useMemo(() => ({ type: "kanban" as const, kanban }), [kanban]);
-  const params = useNavLens(target, oView, [query, setQuery]);
+  const params = useNavLens(target, oView, useQuery());
   return <ButtonOpt {...params}>{kanban}</ButtonOpt>;
 }
 
@@ -289,8 +286,7 @@ function KanbanViews({}: {}) {
 
 const notesViewTarget = { type: "notes" as const };
 function NoteViews({}: {}) {
-  const { query, setQuery } = useQuery();
-  const params = useNavLens(notesViewTarget, oView, [query, setQuery]);
+  const params = useNavLens(notesViewTarget, oView, useQuery());
   return (
     <ButtonOpt
       {...params}
@@ -308,7 +304,7 @@ function NoteViews({}: {}) {
 function Tags({}: {}) {
   const {
     restrict: { tags },
-  } = useQuery();
+  } = useResults();
   return (
     <Box
       display="flex"
@@ -328,15 +324,14 @@ function Tags({}: {}) {
 
 const oId = getOId<IQuery>();
 function ClearAll({}: {}) {
-  const { query, setQuery } = useQuery();
-  const params = useNavLens(nullQuery, oId, [query, setQuery]);
+  const params = useNavLens(nullQuery, oId, useQuery());
   return <ButtonOpt {...params}>Reset</ButtonOpt>;
 }
 
 const oHidden = O.optic<IQuery>().path("filter.hidden");
 function HiddenButton({ children }: { children: ReactNode }) {
-  const { query, setQuery, restrict } = useQuery();
-  const params = useToggleLens(oHidden, [query, setQuery]);
+  const { restrict } = useResults();
+  const params = useToggleLens(oHidden, useQuery());
   if (restrict.hidden) return <ButtonOpt {...params}>{children}</ButtonOpt>;
   return <Box>{children}</Box>;
 }
@@ -344,12 +339,12 @@ function HiddenButton({ children }: { children: ReactNode }) {
 function Hidden({}: {}) {
   const {
     restrict: { hidden },
-  } = useQuery();
+  } = useResults();
   return <HiddenButton>{`${hidden} hidden`}</HiddenButton>;
 }
 
 export function Notes({}: {}) {
-  const { query, notes } = useQuery();
+  const { notes } = useResults();
   return (
     <Box
       mx={5}

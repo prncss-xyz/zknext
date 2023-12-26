@@ -21,11 +21,12 @@ import {
   LuChevronRight,
   LuX,
 } from "react-icons/lu";
+import { useResults } from "./results";
 
 const oDir = O.optic<IQuery>().path("filter.id");
 function Dir({ dir }: { dir: string }) {
-  const [_, setId] = useNoteOverlay();
-  const { setQuery } = useQuery();
+  const [, setId] = useNoteOverlay();
+  const [, setQuery] = useQuery();
   const onClick = useCallback(() => {
     const target = O.set(oDir)(dir)(nullQuery);
     setQuery(target);
@@ -40,8 +41,8 @@ function Dir({ dir }: { dir: string }) {
 
 const oTags = O.optic<IQuery>().path("filter.tags");
 function Tag({ tag }: { tag: string }) {
-  const [_, setId] = useNoteOverlay();
-  const { setQuery } = useQuery();
+  const [, setId] = useNoteOverlay();
+  const [, setQuery] = useQuery();
   const onClick = useCallback(() => {
     const target = O.set(oTags)([tag])(nullQuery);
     setQuery(target);
@@ -181,7 +182,7 @@ function ToNoteOpt({
 
 function Nav({}: {}) {
   const [id] = useNoteOverlay();
-  const { notes } = useQuery();
+  const { notes } = useResults();
   if (!id) return null;
   const index = notes.findIndex((note) => note.id === id);
   if (index === -1) return;
@@ -209,7 +210,7 @@ function Nav({}: {}) {
 function Note({}: {}) {
   const [id, setId] = useNoteOverlay();
   const close = useCallback(() => setId(""), [setId]);
-  const { notes } = useQuery();
+  const { notes } = useResults();
   const ref = useClickOutside(close);
   if (!id) return null;
   const index = notes.findIndex((note) => note.id === id);

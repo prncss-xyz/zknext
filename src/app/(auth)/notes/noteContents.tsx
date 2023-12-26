@@ -43,7 +43,7 @@ function InnerLink({
   className?: string;
   children: ReactNode;
 }) {
-  const [_, setId] = useNoteOverlay();
+  const [, setId] = useNoteOverlay();
   const navigate = useCallback(() => setId(target), [setId, target]);
   return (
     <button onClick={navigate} className={className}>
