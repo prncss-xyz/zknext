@@ -1,5 +1,7 @@
 import { ReactNode } from "react";
 import { Box, BoxProps } from "./box";
+import clsx from "clsx";
+import { sprinkles } from "@/sprinkles.css";
 
 interface Toggle {
   toggle: () => void;
@@ -38,7 +40,7 @@ export function ButtonOpt({ children, active, ...params }: ButtonOptProps) {
     <Box
       as={onClick ? "button" : undefined}
       onClick={onClick}
-      color={active ? "active" : undefined}
+      className={clsx({ [sprinkles({ color: "active" })]: active })}
       {...props}
     >
       {children}

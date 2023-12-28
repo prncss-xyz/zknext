@@ -1,7 +1,6 @@
 import { ButtonOpt, ButtonOptProps } from "./buttonOpt";
 
 export function RoundedButtonOpt(params: ButtonOptProps) {
-  console.log("render RoundedButtonOpt");
   return (
     <ButtonOpt
       display="flex"

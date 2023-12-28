@@ -1,14 +1,14 @@
-"use client"
+"use client";
 
 import { luLink, luExternalLink, contents } from "./noteContents.css";
 import { getHTML } from "@/server/actions";
 import { Errable, fromSuccess } from "@/utils/errable";
 import { useEffect, useState } from "react";
 import { Box } from "@/components/box";
-import { ReactNode, useCallback } from "react";
+import { ReactNode } from "react";
 import { LuLink, LuExternalLink } from "react-icons/lu";
 import { HTML } from "@/components/html";
-import { useNoteOverlay } from "./noteOverlay";
+import { useStr } from "@/components/store";
 
 function Failure({ message }: { message: string }) {
   return (
@@ -43,8 +43,7 @@ function InnerLink({
   className?: string;
   children: ReactNode;
 }) {
-  const [, setId] = useNoteOverlay();
-  const navigate = useCallback(() => setId(target), [setId, target]);
+  const navigate = useStr.focusedNote.set(target);
   return (
     <button onClick={navigate} className={className}>
       {children}

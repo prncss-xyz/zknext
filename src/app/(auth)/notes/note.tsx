@@ -1,6 +1,8 @@
 "use client";
 import * as O from "optics-ts";
 
+import clsx from "clsx";
+import { sprinkles } from "@/sprinkles.css";
 import { Box, BoxProps } from "@/components/box";
 import { useClickOutside } from "@/components/clickOutside";
 import { overlay } from "@/components/overlay.css";
@@ -12,8 +14,6 @@ import { upDirs } from "@/utils/path";
 import { basename } from "path";
 import { ReactNode, useCallback } from "react";
 import { NoteContents } from "./noteContents";
-import { useNoteOverlay } from "./noteOverlay";
-import { useQuery } from "./query";
 import {
   LuChevronFirst,
   LuChevronLast,
@@ -22,36 +22,23 @@ import {
   LuX,
 } from "react-icons/lu";
 import { useResults } from "./results";
+import { queryStore, useStr } from "@/components/store";
 
-const oDir = O.optic<IQuery>().path("filter.id");
 function Dir({ dir }: { dir: string }) {
-  const [, setId] = useNoteOverlay();
-  const [, setQuery] = useQuery();
-  const onClick = useCallback(() => {
-    const target = O.set(oDir)(dir)(nullQuery);
-    setQuery(target);
-    setId("");
-  }, [dir, setId, setQuery]);
+  const focusClose = useStr.focusDir.set(dir);
   return (
-    <Box as="button" fontFamily="monospace" onClick={onClick}>
+    <Box as="button" fontFamily="monospace" onClick={focusClose}>
       {basename(dir)}
     </Box>
   );
 }
 
-const oTags = O.optic<IQuery>().path("filter.tags");
 function Tag({ tag }: { tag: string }) {
-  const [, setId] = useNoteOverlay();
-  const [, setQuery] = useQuery();
-  const onClick = useCallback(() => {
-    const target = O.set(oTags)([tag])(nullQuery);
-    setQuery(target);
-    setId("");
-  }, [setId, setQuery, tag]);
+  const focusClose = useStr.focusTag.set(tag);
   return (
     <Box
       as="button"
-      onClick={onClick}
+      onClick={focusClose}
       display="flex"
       flexDirection="row"
       alignItems="baseline"
@@ -151,14 +138,14 @@ function ToNote({
   children,
   ...props
 }: { target: string; children: ReactNode } & BoxProps) {
-  const [id, setId] = useNoteOverlay();
+  const id = useStr.focusedNote.get();
+  const navigate = useStr.focusedNote.set("");
   const active = id === target;
-  const navigate = useCallback(() => setId(target), [setId, target]);
   return (
     <ToNoteBox
       as="button"
-      color={active ? "active" : undefined}
       onClick={navigate}
+      className={clsx({ [sprinkles({ color: "active" })]: active })}
       {...props}
     >
       {children}
@@ -180,24 +167,33 @@ function ToNoteOpt({
   );
 }
 
+function getNavNotes(index: number, notes: INote[]) {
+  return {
+    first: notes[0]?.id,
+    prev: notes[index - 1]?.id,
+    next: notes[index + 1]?.id,
+    last: notes.at(-1)?.id,
+  };
+}
+
 function Nav({}: {}) {
-  const [id] = useNoteOverlay();
+  const id = useStr.focusedNote.get();
   const { notes } = useResults();
-  if (!id) return null;
   const index = notes.findIndex((note) => note.id === id);
-  if (index === -1) return;
+  if (!index) return;
+  const navNotes = getNavNotes(index, notes);
   return (
     <Box display="flex" flexDirection="row" justifyContent="flex-end" gap={5}>
-      <ToNoteOpt target={notes[0]?.id}>
+      <ToNoteOpt target={navNotes.first}>
         <LuChevronFirst />
       </ToNoteOpt>
-      <ToNoteOpt target={notes[index - 1]?.id}>
+      <ToNoteOpt target={navNotes.prev}>
         <LuChevronLeft />
       </ToNoteOpt>
-      <ToNoteOpt target={notes[index + 1]?.id}>
+      <ToNoteOpt target={navNotes.next}>
         <LuChevronRight />
       </ToNoteOpt>
-      <ToNoteOpt target={notes.at(-1)?.id}>
+      <ToNoteOpt target={navNotes.last}>
         <LuChevronLast />
       </ToNoteOpt>
       <ToNoteOpt target="">
@@ -208,8 +204,7 @@ function Nav({}: {}) {
 }
 
 function Note({}: {}) {
-  const [id, setId] = useNoteOverlay();
-  const close = useCallback(() => setId(""), [setId]);
+  const [id, close] = useStr.focusedNote.rw("");
   const { notes } = useResults();
   const ref = useClickOutside(close);
   if (!id) return null;

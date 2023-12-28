@@ -1,11 +1,11 @@
 import * as O from "optics-ts";
 
-export function getOId<T>() {
+export function id<T>() {
   const id = (x: T) => x;
   return O.optic<T>().iso(id, id);
 }
 
-export function getOMember<T>(x: T) {
+export function member<T>(x: T) {
   function update(xs: T[], value: boolean) {
     const xs_ = xs.filter((x_) => !Object.is(x_, x));
     if (value) {

@@ -2,17 +2,15 @@ import { useCallback, useState, useEffect } from "react";
 import { Box, BoxProps } from "./box";
 import { IEncodec } from "@/core/encodec";
 
-export type InputProps<A> = {
+type InputProps<A> = {
   encodec: IEncodec<A>;
   value: A;
   setValue: (v: A) => void;
 } & Omit<BoxProps, "as" | "onClick">;
 
-type IState<S> = [state: S, setState: (s: S) => void];
-
 function useInput<A>(
   { encode, decode }: IEncodec<A>,
-  [value, setValue]: IState<A>,
+  [value, setValue]: [value: A, setValue: (s: A) => void],
 ) {
   const [encoded, setEncoded] = useState(encode(value));
   useEffect(() => {

@@ -13,40 +13,6 @@ export const nullQuery: IQuery = {
   filter: nullFilter,
 };
 
-export function isActiveField(query: IQuery, field: OrderField) {
-  const { filter } = query;
-  return Boolean(filter[field]);
-}
-
-export function activateField(query: IQuery, field: OrderField) {
-  if (!isActiveField(query, field)) {
-    return { ...query, filter: { ...query.filter, [field]: {} } };
-  }
-  return query;
-}
-
-export function deActivateField(query: IQuery, field: OrderField) {
-  return { ...query, filter: { ...query.filter, [field]: null } };
-}
-
-export function setSort(query: IQuery, sort: ISort): IQuery {
-  const { field } = sort;
-  return { ...activateField(query, field), sort };
-}
-
-export function setFilter(
-  query: IQuery,
-  field: OrderField,
-  value: boolean,
-): IQuery {
-  let { sort } = query;
-  if (value) {
-    return { sort, filter: { ...query.filter, [field]: {} } };
-  }
-  if (sort.field === field) sort = nullSort;
-  return { sort, filter: { ...query.filter, [field]: null } };
-}
-
 export function isValidBound(field: OrderField, value: string) {
   if (!value) return true;
   if (isNumberField(field)) {

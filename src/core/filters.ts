@@ -34,6 +34,10 @@ interface IKanbanView {
   kanban: string;
 }
 
+export function isKanbanView(view: View): view is IKanbanView {
+  return view.type === "kanban";
+}
+
 type View = INotesView | IKanbanView;
 
 interface IBaseFilter {
