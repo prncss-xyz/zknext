@@ -6,7 +6,7 @@ import { wordsCount } from "words-count";
 import { Element, Root } from "hast";
 import { normalizePath } from "@/utils/path";
 import { getMatter, getProcessor } from "./processor";
-import { failure, success } from "@/utils/errable";
+import { Failure, Success } from "@/utils/errable";
 import { fromPreamble } from "./fromPreamble";
 
 interface FileData {
@@ -101,15 +101,15 @@ export async function getMeta(fileData: FileData, raw: string) {
   try {
     preamble = getMatter(raw, {});
   } catch (err) {
-    return failure("syntax error (preamble)");
+    return new Failure("syntax error (preamble)");
   }
   let validated: ReturnType<typeof fromPreamble>;
   try {
     validated = fromPreamble(preamble);
   } catch (err) {
-    return failure("invalid data (preamble)");
+    return new Failure("invalid data (preamble)");
   }
-  return success({
+  return new Success({
     ...fileData,
     ...validated,
     title,

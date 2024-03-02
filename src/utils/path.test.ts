@@ -1,3 +1,4 @@
+import { basename } from "node:path";
 import { upDirs, dirname, normalizePath, contains } from "./path";
 
 describe("contains", () => {
@@ -42,6 +43,14 @@ describe("dirname", () => {
     expect(dirname("toto")).toBe("");
     expect(dirname("a/toto")).toBe("a");
     expect(dirname("a/b/toto")).toBe("a/b");
+  });
+});
+
+describe("basename", () => {
+  it("should return basename of file", () => {
+    expect(basename("toto")).toBe("toto");
+    expect(basename("a/toto")).toBe("toto");
+    expect(basename("a/b/toto")).toBe("toto");
   });
 });
 

@@ -1,5 +1,5 @@
-import { parseDate, formatDate } from "@/utils/dates";
-import { IFilter, nullFilter } from "./filters";
+import { dateString, numString } from "@/utils/encodec";
+import { IFilter, RangeField, nullFilter } from "./filters";
 import { isDateField, isDateRangeField, isNumberField } from "./note";
 import { ISort, OrderField, nullSort } from "./sorters";
 
@@ -16,13 +16,13 @@ export const nullQuery: IQuery = {
 export function isValidBound(field: OrderField, value: string) {
   if (!value) return true;
   if (isNumberField(field)) {
-    return !isNaN(Number(value));
+    return Boolean(numString.decode(value));
   }
   if (isDateField(field) || isDateRangeField(field)) {
-    return !isNaN(parseDate(value).getTime());
+    return Boolean(dateString.decode(value));
   }
   // string is always valid
-  return true;
+  throw new Error(`unexpected field ${field}`);
 }
 
 export function setBound(
@@ -36,45 +36,45 @@ export function setBound(
     if (isNaN(num)) return query;
     let range = query.filter[field] || {};
     if (start) {
-      const gte = num;
-      let lte = range.lte;
-      if (lte && lte <= gte) lte = undefined;
-      range = { gte, lte };
+      const start = num;
+      let end = range.end;
+      if (end && end <= start) end = undefined;
+      range = { start, end };
     } else {
-      const lte = num;
-      let gte = range.gte;
-      if (gte && gte >= lte) gte = undefined;
-      range = { gte, lte };
+      const end = num;
+      let start = range.start;
+      if (start && start >= end) start = undefined;
+      range = { start, end };
     }
     return { ...query, filter: { ...query.filter, [field]: range } };
   }
   if (isDateField(field) || isDateRangeField(field)) {
-    const date = parseDate(value);
-    if (isNaN(date.getTime())) return query;
+    const date = dateString.decode(value);
+    if (date === undefined) return query;
     let range = query.filter[field] || {};
     if (start) {
-      const gte = date;
-      let lte = range.lte;
-      if (lte && lte <= gte) lte = undefined;
-      range = { gte, lte };
+      const start = date;
+      let end = range.end;
+      if (end && end <= start) end = undefined;
+      range = { start, end };
     } else {
-      const lte = date;
-      let gte = range.gte;
-      if (gte && gte >= lte) gte = undefined;
-      range = { gte, lte };
+      const end = date;
+      let start = range.start;
+      if (start && start >= end) start = undefined;
+      range = { start, end };
     }
     return { ...query, filter: { ...query.filter, [field]: range } };
   }
   return query;
 }
 
-export function getBound(query: IQuery, field: OrderField, start: boolean) {
-  const bound = start ? "gte" : "lte";
+export function getBound(query: IQuery, field: RangeField, start: boolean) {
+  const bound = start ? "start" : "end";
   const value = (query.filter[field] as any)?.[bound];
   if (!value) return "";
   if (isNaN(value)) return "";
   if (value instanceof Date) {
-    return formatDate(value);
+    return dateString.encode(value);
   }
   return String(value);
 }

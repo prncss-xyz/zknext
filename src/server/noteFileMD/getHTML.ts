@@ -2,7 +2,7 @@ import rehypeStringify from "rehype-stringify";
 import rehypeFormat from "rehype-format";
 import rehypeDocument from "rehype-document";
 import { getProcessor } from "./processor";
-import { fromSuccess, success } from "@/utils/errable";
+import { fromSuccess, Success } from "@/utils/errable";
 import { INoteGetHTMLOpts } from "../interface";
 
 /**
@@ -28,5 +28,5 @@ export async function getHTML(opts: INoteGetHTMLOpts, md: string) {
   p = p.use(rehypeStringify).use(rehypeFormat);
   const processed = await p.process(md);
   html = String(processed);
-  return success(html);
+  return new Success(html);
 }

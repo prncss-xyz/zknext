@@ -1,28 +1,29 @@
 import { contains, upDirs } from "@/utils/path";
 import { IDateRange, INote } from "./note";
 
-function filterDateRange(
-  query: { lte?: Date; gte?: Date } | undefined,
-  value: IDateRange | null,
-) {
-  if (!query) return true;
-  if (value === null) return false;
-  if (query.gte && value.end && query.gte > value.end) return false;
-  if (query.lte && value.start && query.lte < value.start) return false;
-  return true;
-}
+type IRange0<T> =
+  | {
+      start?: T;
+      end?: T;
+    }
+  | undefined;
 
-function filterOrder<T>(query: { lte?: T; gte?: T } | undefined, value: T) {
+type IRange<T> = T extends IDateRange ? IRange0<Date> : IRange0<T>;
+
+function filterOrder<T>(query: IRange<T>, value: T) {
   if (!query) return true;
   if (value === undefined || value === null) return false;
-  if (query.gte && !(value >= query.gte)) return false;
-  if (query.lte && !(value <= query.lte)) return false;
+  if (query.start && !(value >= query.start)) return false;
+  if (query.end && !(value <= query.end)) return false;
   return true;
 }
 
-interface IDateRangeFilter {
-  lte?: Date;
-  gte?: Date;
+function filterDateRange(query: IRange<Date>, value: IDateRange | null) {
+  if (!query) return true;
+  if (value === null) return false;
+  if (query.start && value.end && query.start > value.end) return false;
+  if (query.end && value.start && query.end < value.start) return false;
+  return true;
 }
 
 interface INotesView {
@@ -40,43 +41,31 @@ export function isKanbanView(view: View): view is IKanbanView {
 
 type View = INotesView | IKanbanView;
 
+export type RangeField =
+  | "wordcount"
+  | "due"
+  | "mtime"
+  | "since"
+  | "until"
+  | "event";
+
 interface IBaseFilter {
   // actually the dir an id will be checked against
-  id: string;
-  title: string;
-  asset: string;
-  mtime?: IDateRangeFilter;
-  due?: IDateRangeFilter;
-  since?: IDateRangeFilter;
-  until?: IDateRangeFilter;
-  event?: IDateRangeFilter;
-  wordcount?: {
-    lte?: number;
-    gte?: number;
-  };
+  dir: string;
   view: View;
   tags: string[];
+  wordcount?: IRange<number>;
+  due?: IRange<Date>;
+  mtime?: IRange<Date>;
+  since?: IRange<IDateRange>;
+  until?: IRange<IDateRange>;
+  event?: IRange<IDateRange>;
 }
 
-export const existsFilter: IBaseFilter = {
-  id: "",
-  title: "",
-  asset: "",
-  mtime: {},
-  since: {},
-  until: {},
-  event: {},
-  wordcount: {},
-  view: { type: "notes" },
-  tags: [],
-};
-
 export const nullBaseFilter: IBaseFilter = {
-  id: "",
-  title: "",
-  asset: "",
-  tags: [],
+  dir: "",
   view: { type: "notes" },
+  tags: [],
 };
 
 export interface IFilter extends IBaseFilter {
@@ -100,7 +89,7 @@ export const nullApplyFilterOpts: ApplyFilterOpts = {
 };
 
 function filterNote(opts: ApplyFilterOpts, filter: IBaseFilter, note: INote) {
-  if (!contains(filter.id, note.id)) return false;
+  if (!contains(filter.dir, note.id)) return false;
   if (
     filter.tags.length > 0 &&
     !note.tags.some((tag) => filter.tags.some((_tag) => contains(_tag, tag)))

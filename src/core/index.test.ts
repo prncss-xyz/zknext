@@ -61,7 +61,7 @@ describe("applyQuery", () => {
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              id: "a",
+              dir: "a",
             },
             notes,
           )
@@ -200,13 +200,13 @@ describe("applyQuery", () => {
       });
     });
     describe("should filter", () => {
-      test("lte", () => {
+      test("end", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              mtime: { lte: new Date(2) },
+              mtime: { end: new Date(2) },
             },
             notes,
           )
@@ -214,13 +214,13 @@ describe("applyQuery", () => {
             .sort(),
         ).toEqual(["a.md", "c.md"]);
       });
-      test("gte", () => {
+      test("start", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              mtime: { gte: new Date(2) },
+              mtime: { start: new Date(2) },
             },
             notes,
           )
@@ -254,13 +254,13 @@ describe("applyQuery", () => {
       });
     });
     describe("should filter", () => {
-      test("lte", () => {
+      test("end", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              due: { lte: new Date(2) },
+              due: { end: new Date(2) },
             },
             notes,
           )
@@ -268,13 +268,13 @@ describe("applyQuery", () => {
             .sort(),
         ).toEqual(["a.md", "c.md"]);
       });
-      test("gte", () => {
+      test("start", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              due: { gte: new Date(2) },
+              due: { start: new Date(2) },
             },
             notes,
           )
@@ -308,13 +308,13 @@ describe("applyQuery", () => {
       });
     });
     describe("should filter", () => {
-      test("lte", () => {
+      test("end", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              until: { lte: new Date(2) },
+              until: { end: new Date(2) },
             },
             notes,
           )
@@ -322,13 +322,13 @@ describe("applyQuery", () => {
             .sort(),
         ).toEqual(["a.md", "c.md"]);
       });
-      test("gte", () => {
+      test("start", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              until: { gte: new Date(2) },
+              until: { start: new Date(2) },
             },
             notes,
           )
@@ -362,13 +362,13 @@ describe("applyQuery", () => {
       });
     });
     describe("should filter", () => {
-      test("lte", () => {
+      test("end", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              since: { lte: new Date(2) },
+              since: { end: new Date(2) },
             },
             notes,
           )
@@ -376,13 +376,13 @@ describe("applyQuery", () => {
             .sort(),
         ).toEqual(["a.md", "c.md"]);
       });
-      test("gte", () => {
+      test("start", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              since: { gte: new Date(2) },
+              since: { start: new Date(2) },
             },
             notes,
           )
@@ -415,13 +415,13 @@ describe("applyQuery", () => {
       });
     });
     describe("should filter", () => {
-      test("lte", () => {
+      test("end", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              wordcount: { lte: 2 },
+              wordcount: { end: 2 },
             },
             notes,
           )
@@ -429,13 +429,13 @@ describe("applyQuery", () => {
             .sort(),
         ).toEqual(["a.md", "c.md"]);
       });
-      test("gte", () => {
+      test("start", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              wordcount: { gte: 2 },
+              wordcount: { start: 2 },
             },
             notes,
           )
@@ -455,36 +455,26 @@ describe("applyQuery", () => {
       { ...nullNote, id: "h.md", event: { start: null, end: dateB } },
       { ...nullNote, id: "i.md" },
     ];
-    it.skip("should sort", () => {
+    it("should sort", () => {
       expect(
-        applyFilter(nullApplyFilterOpts, nullFilter, notes)
-          .notes.sort(getSorter({ field: "event", asc: true }))
+        notes
+          .sort(getSorter({ field: "event", asc: true }))
           .map((note) => note.id),
-      ).toEqual([
-        "g.md",
-        "h.md",
-        "f.md",
-        "e.md",
-        "d.md",
-        "b.md",
-        "c.md",
-        "a.md",
-        "i.md",
-      ]);
+      ).toEqual(["g.md", "h.md", "f.md", "a.md", "i.md"]);
     });
+    const notesB = [
+      { ...nullNote, id: "j.md" },
+      { ...nullNote, id: "i.md" },
+      { ...nullNote, id: "h.md", event: { start: null, end: dateB } },
+      { ...nullNote, id: "g.md", event: { start: null, end: dateA } },
+      { ...nullNote, id: "f.md", event: { start: null, end: null } },
+      { ...nullNote, id: "e.md", event: { start: dateA, end: dateA } },
+      { ...nullNote, id: "d.md", event: { start: dateA, end: dateB } },
+      { ...nullNote, id: "c.md", event: { start: dateB, end: dateB } },
+      { ...nullNote, id: "b.md", event: { start: dateB, end: dateB } },
+      { ...nullNote, id: "a.md", event: { start: dateB, end: null } },
+    ];
     describe("second sample", () => {
-      const notesB = [
-        { ...nullNote, id: "j.md" },
-        { ...nullNote, id: "i.md" },
-        { ...nullNote, id: "h.md", event: { start: null, end: dateB } },
-        { ...nullNote, id: "g.md", event: { start: null, end: dateA } },
-        { ...nullNote, id: "f.md", event: { start: null, end: null } },
-        { ...nullNote, id: "e.md", event: { start: dateA, end: dateA } },
-        { ...nullNote, id: "d.md", event: { start: dateA, end: dateB } },
-        { ...nullNote, id: "c.md", event: { start: dateB, end: dateB } },
-        { ...nullNote, id: "b.md", event: { start: dateB, end: dateB } },
-        { ...nullNote, id: "a.md", event: { start: dateB, end: null } },
-      ];
       it("should sort", () => {
         expect(
           applyFilter(nullApplyFilterOpts, nullFilter, notesB)
@@ -505,7 +495,7 @@ describe("applyQuery", () => {
       });
     });
     describe("should filter", () => {
-      test.skip("exists", () => {
+      test("exists", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
@@ -513,7 +503,7 @@ describe("applyQuery", () => {
               ...nullFilter,
               event: {},
             },
-            notes,
+            notesB,
           )
             .notes.map(({ id }) => id)
             .sort(),
@@ -528,29 +518,29 @@ describe("applyQuery", () => {
           "h.md",
         ]);
       });
-      test.skip("lte", () => {
+      test("end", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              event: { lte: dateA },
+              event: { end: dateA },
             },
-            notes,
+            notesB,
           )
             .notes.map(({ id }) => id)
             .sort(),
         ).toEqual(["d.md", "e.md", "f.md", "g.md", "h.md"]);
       });
-      test.skip("gte", () => {
+      test("start", () => {
         expect(
           applyFilter(
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              event: { gte: dateB },
+              event: { start: dateB },
             },
-            notes,
+            notesB,
           )
             .notes.map(({ id }) => id)
             .sort(),
@@ -583,13 +573,13 @@ describe("since", () => {
     });
   });
   describe("should filter", () => {
-    test("lte", () => {
+    test("end", () => {
       expect(
         applyFilter(
           nullApplyFilterOpts,
           {
             ...nullFilter,
-            since: { lte: new Date(2) },
+            since: { end: new Date(2) },
           },
           notes,
         )
@@ -597,13 +587,13 @@ describe("since", () => {
           .sort(),
       ).toEqual(["a.md", "c.md"]);
     });
-    test("gte", () => {
+    test("start", () => {
       expect(
         applyFilter(
           nullApplyFilterOpts,
           {
             ...nullFilter,
-            since: { gte: new Date(2) },
+            since: { start: new Date(2) },
           },
           notes,
         )

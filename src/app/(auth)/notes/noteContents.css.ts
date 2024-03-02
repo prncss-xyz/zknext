@@ -115,6 +115,11 @@ globalStyle(`${contents} li`, {
   // display: "list-item",
 });
 
+globalStyle(`${contents} dl`, {
+  marginTop: "1",
+  marginBottom: "1",
+});
+
 globalStyle(`${contents} hr`, {
   // display: "block",
   marginTop: "0.5em",
@@ -123,15 +128,6 @@ globalStyle(`${contents} hr`, {
   marginRight: "auto",
   borderStyle: "inset",
   borderWidth: "1px",
-});
-
-globalStyle(`${contents} dl`, {
-  marginTop: "1",
-  marginBottom: "1",
-});
-
-globalStyle(`${contents} mark`, {
-  backgroundColor: vars.colors.active,
 });
 
 globalStyle(`${contents} mark`, {

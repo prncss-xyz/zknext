@@ -11,14 +11,12 @@ import {
 
 export type OrderField = NumberField | DateField | DateRangeField | StringField;
 export const orderFields: OrderField[] = [
-  "id",
   "mtime",
   "title",
   "event",
   "due",
   "since",
   "until",
-  "asset",
   "wordcount",
 ];
 
@@ -34,27 +32,27 @@ export const nullSort: ISort = {
 
 export function getDateRangeSorter(field: DateRangeField) {
   return function (a: INote, b: INote) {
-    const n = a[field];
-    const o = b[field];
-    if (!n && !o) return 0;
+    const af = a[field];
+    const bf = b[field];
+    if (!af && !bf) return 0;
     // missing field goes last
-    if (!n) return 1;
-    if (!o) return -1;
-    const p = a[field]?.start?.getTime();
-    const q = b[field]?.start?.getTime();
-    if (p !== q) {
+    if (!af) return 1;
+    if (!bf) return -1;
+    const as = a[field]?.start?.getTime();
+    const bs = b[field]?.start?.getTime();
+    if (as !== bs) {
       // undefined start is akin to minus infinity
-      if (p === undefined) return -1;
-      if (q === undefined) return 1;
-      return p - q;
+      if (as === undefined) return -1;
+      if (bs === undefined) return 1;
+      return as - bs;
     }
-    const r = a[field]?.end?.getTime();
-    const s = b[field]?.end?.getTime();
-    if (r === s) return 0;
+    const ae = a[field]?.end?.getTime();
+    const be = b[field]?.end?.getTime();
+    if (ae === be) return 0;
     // undefined end is akin to plus infinity
-    if (r === undefined) return 1;
-    if (s === undefined) return -1;
-    return r - s;
+    if (ae === undefined) return 1;
+    if (be === undefined) return -1;
+    return ae - be;
   };
 }
 
