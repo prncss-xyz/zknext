@@ -1,4 +1,4 @@
-class Encodec<T> {
+export class Encodec<T> {
   readonly encode: (decoded: T) => string;
   readonly decode: (encoded: string) => T | undefined;
   constructor(

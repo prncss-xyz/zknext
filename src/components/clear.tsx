@@ -1,7 +1,6 @@
 import { ButtonOpt, ButtonOptProps } from "./buttonOpt";
 import { LuDelete } from "react-icons/lu";
 
-
 // Omit<ButtonOptProps, "children"> not working properly
 export function Clear(params: ButtonOptProps) {
   return (

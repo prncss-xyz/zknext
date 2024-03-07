@@ -7,29 +7,30 @@ import { Box } from "@/components/box";
 import { INote, isStringField, optFields } from "@/core/note";
 import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { ISort, OrderField } from "@/core/sorters";
-import {
-  isActiveField,
-  getBound,
-  isValidBound,
-  nullQuery,
-  setBound,
-  activateField,
-  deActivateField,
-  IQuery,
-} from "@/core";
+import { getBound, isValidBound, nullQuery, setBound, IQuery } from "@/core";
 import { Clear } from "@/components/clear";
 import { RoundedButtonOpt } from "@/components/roundedButtonOpt";
 import { Label } from "@/components/label";
 import { SmallButtonOpt } from "@/components/smallButtonOpt";
 import { ButtonOpt } from "@/components/buttonOpt";
-import { useLens, useNavLens, useToggleLens } from "@/components/optics";
-import { id, member } from "@/utils/optics";
+import { oState, useMainStore } from "@/components/store";
+import {
+  oAsc,
+  oDir,
+  oField,
+  oSort,
+  getOTag,
+  oTags,
+  oView,
+  oQuery,
+  oHidden,
+  neg,
+} from "@/utils/optics";
 import { useResults } from "./results";
-import { useStr, queryStore } from "@/components/store";
 
+const oFocused = oState.prop("focusedNote");
 function Entry({ note }: { note: INote }) {
-  const id = useStr.focusedNote.get();
-  const activate = useStr.focusedNote.set(note.id);
+  const [id, activate] = useMainStore.lensValue(oFocused, note.id);
   const active = id === note.id;
   return (
     <ButtonOpt
@@ -161,10 +162,10 @@ function QueryCheckBox({ field }: { field: OrderField }) {
 */
 
 function SortSelectorField(sort: ISort) {
-  const field = useStr.sort.field.get();
-  const asc = useStr.sort.asc.get();
+  const field = useMainStore.get(oField);
+  const asc = useMainStore.get(oAsc);
   const active = field == sort.field && asc == sort.asc;
-  const navigate = useStr.sort.id.set(sort);
+  const navigate = useMainStore.setValue(oSort, sort);
   return (
     <SmallButtonOpt active={active} navigate={navigate}>
       {sort.asc ? <LuChevronUp /> : <LuChevronDown />}
@@ -216,8 +217,9 @@ function QuerySelector({}: {}) {
 }
 
 function Dir({ dir }: { dir: string }) {
-  const [active, navigate] = useStr.filter.dir.rw(dir);
-  if (dir === "") return <Clear {...params} />;
+  const [current, navigate] = useMainStore.lensValue(oDir, dir);
+  const active = current === dir;
+  if (dir === "") return <Clear active={active} navigate={navigate} />;
   return (
     <RoundedButtonOpt
       active={active}
@@ -230,7 +232,8 @@ function Dir({ dir }: { dir: string }) {
 }
 
 function Tag({ tag }: { tag: string }) {
-  const [active, toggle] = useStr.filter.tag(tag).rwC();
+  const oTag = useMemo(() => getOTag(tag), [tag]);
+  const [active, toggle] = useMainStore.lensModify(oTag, neg);
   return (
     <RoundedButtonOpt active={active} toggle={toggle}>
       {tag}
@@ -259,8 +262,9 @@ function Dirs({}: {}) {
 }
 
 function ClearTags({}: {}) {
-  const params = useNavLens([], oTags, queryStore);
-  return <Clear {...params} />;
+  const [current, navigate] = useMainStore.lensValue(oTags, []);
+  const active = current.length === 0;
+  return <Clear active={active} navigate={navigate} />;
 }
 
 function Views({}: {}) {
@@ -272,12 +276,21 @@ function Views({}: {}) {
   );
 }
 
-const oView = O.optic<IQuery>().path("filter.view");
-
 function KanbanView({ kanban }: { kanban: string }) {
-  const target = useMemo(() => ({ type: "kanban" as const, kanban }), [kanban]);
-  const params = useNavLens(target, oView, queryStore);
-  return <ButtonOpt {...params}>{kanban}</ButtonOpt>;
+  const target = useMemo(
+    () => ({
+      type: "kanban" as const,
+      kanban,
+    }),
+    [kanban],
+  );
+  const [current, navigate] = useMainStore.lensValue(oView, target);
+  const active = current.type === "kanban" && current.kanban === kanban;
+  return (
+    <ButtonOpt active={active} navigate={navigate}>
+      {kanban}
+    </ButtonOpt>
+  );
 }
 
 function KanbanViews({}: {}) {
@@ -297,10 +310,12 @@ function KanbanViews({}: {}) {
 
 const notesViewTarget = { type: "notes" as const };
 function NoteViews({}: {}) {
-  const params = useNavLens(notesViewTarget, oView, queryStore);
+  const [current, navigate] = useMainStore.lensValue(oView, notesViewTarget);
+  const active = current.type === "notes";
   return (
     <ButtonOpt
-      {...params}
+      active={active}
+      navigate={navigate}
       display="flex"
       flexDirection="row"
       alignItems="baseline"
@@ -333,17 +348,26 @@ function Tags({}: {}) {
   );
 }
 
-const oId = id<IQuery>();
 function ClearAll({}: {}) {
-  const params = useNavLens(nullQuery, oId, queryStore);
-  return <ButtonOpt {...params}>Reset</ButtonOpt>;
+  const [current, navigate] = useMainStore.lensValue(oQuery, nullQuery);
+  // TODO: deep equal compare (cuurent, nullQuery)
+  const active = false;
+  return (
+    <ButtonOpt active={active} navigate={navigate}>
+      Reset
+    </ButtonOpt>
+  );
 }
 
-const oHidden = O.optic<IQuery>().path("filter.hidden");
 function HiddenButton({ children }: { children: ReactNode }) {
   const { restrict } = useResults();
-  const params = useToggleLens(oHidden, queryStore);
-  if (restrict.hidden) return <ButtonOpt {...params}>{children}</ButtonOpt>;
+  const [active, toggle] = useMainStore.lensModify(oHidden, neg);
+  if (restrict.hidden)
+    return (
+      <ButtonOpt active={active} toggle={toggle}>
+        {children}
+      </ButtonOpt>
+    );
   return <Box>{children}</Box>;
 }
 

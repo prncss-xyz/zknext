@@ -1,18 +1,15 @@
 "use client";
-import * as O from "optics-ts";
 
 import clsx from "clsx";
 import { sprinkles } from "@/sprinkles.css";
 import { Box, BoxProps } from "@/components/box";
 import { useClickOutside } from "@/components/clickOutside";
 import { overlay } from "@/components/overlay.css";
-import { IQuery, nullQuery } from "@/core";
 import { IDateRange, INote, NumberField } from "@/core/note";
 import { OrderField } from "@/core/sorters";
-import { formatDateTime } from "@/utils/dates";
 import { upDirs } from "@/utils/path";
 import { basename } from "path";
-import { ReactNode, useCallback } from "react";
+import { ReactNode, useMemo } from "react";
 import { NoteContents } from "./noteContents";
 import {
   LuChevronFirst,
@@ -22,10 +19,12 @@ import {
   LuX,
 } from "react-icons/lu";
 import { useResults } from "./results";
-import { queryStore, useStr } from "@/components/store";
+import { dateString } from "@/utils/encodec";
+import { oState, useMainStore } from "@/components/store";
+import { oDir, getOTag } from "@/utils/optics";
 
 function Dir({ dir }: { dir: string }) {
-  const focusClose = useStr.focusDir.set(dir);
+  const focusClose = useMainStore.setValue(oDir, dir);
   return (
     <Box as="button" fontFamily="monospace" onClick={focusClose}>
       {basename(dir)}
@@ -34,7 +33,8 @@ function Dir({ dir }: { dir: string }) {
 }
 
 function Tag({ tag }: { tag: string }) {
-  const focusClose = useStr.focusTag.set(tag);
+  const o = useMemo(() => getOTag(tag), [tag]);
+  const focusClose = useMainStore.setValue(o, false);
   return (
     <Box
       as="button"
@@ -58,13 +58,13 @@ function OrderValue({ value }: { value: string | number | Date | IDateRange }) {
     return <Box>{value}</Box>;
   }
   if (value instanceof Date) {
-    return <Box>{formatDateTime(value)}</Box>;
+    return <Box>{dateString.encode(value)}</Box>;
   }
   return (
     <Box display="flex" flexDirection="row">
-      <Box>{formatDateTime(value?.start)}</Box>
+      <Box>{value.start !== null && dateString.encode(value.start)}</Box>
       <Box>-</Box>
-      <Box>{formatDateTime(value?.end)}</Box>
+      <Box>{value.end !== null && dateString.encode(value.end)}</Box>
     </Box>
   );
 }
@@ -133,13 +133,13 @@ function ToNoteBox({ children, ...props }: { children: ReactNode } & BoxProps) {
   return <Box {...props}>{children}</Box>;
 }
 
+const oFocused = oState.prop("focusedNote");
 function ToNote({
   target,
   children,
   ...props
 }: { target: string; children: ReactNode } & BoxProps) {
-  const id = useStr.focusedNote.get();
-  const navigate = useStr.focusedNote.set("");
+  const [id, navigate] = useMainStore.lensValue(oFocused, "");
   const active = id === target;
   return (
     <ToNoteBox
@@ -177,7 +177,7 @@ function getNavNotes(index: number, notes: INote[]) {
 }
 
 function Nav({}: {}) {
-  const id = useStr.focusedNote.get();
+  const id = useMainStore.get(oFocused);
   const { notes } = useResults();
   const index = notes.findIndex((note) => note.id === id);
   if (!index) return;
@@ -204,7 +204,7 @@ function Nav({}: {}) {
 }
 
 function Note({}: {}) {
-  const [id, close] = useStr.focusedNote.rw("");
+  const [id, close] = useMainStore.lensValue(oFocused, "");
   const { notes } = useResults();
   const ref = useClickOutside(close);
   if (!id) return null;

@@ -5,8 +5,8 @@ import { applyFilter, nullApplyFilterOpts } from "@/core/filters";
 import { INote } from "@/core/note";
 import { getSorter } from "@/core/sorters";
 import { ReactNode, useMemo } from "react";
-import { useStore } from "@tanstack/react-store";
-import { queryStore } from "@/components/store";
+import { useMainStore } from "@/components/store";
+import { oQuery } from "@/utils/optics";
 
 type Results = ReturnType<typeof applyFilter>;
 const { Provider: ResultsProvider_, useCtx: useResults_ } =
@@ -19,7 +19,7 @@ export function ResultsProvider({
   notes: INote[];
   children: ReactNode;
 }) {
-  const query = useStore(queryStore, (x) => x);
+  const query = useMainStore.get(oQuery);
   const value = useMemo(() => {
     const results = applyFilter(nullApplyFilterOpts, query.filter, notes);
     results.notes.sort(getSorter(query.sort));

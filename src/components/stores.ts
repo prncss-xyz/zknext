@@ -4,19 +4,19 @@ import * as O from "optics-ts";
 import { StoreApi, UseBoundStore } from "zustand";
 
 export function createHooks<IState>(
-  useBoundStore: UseBoundStore<StoreApi<IState>>
+  useBoundStore: UseBoundStore<StoreApi<IState>>,
 ) {
   return {
     get: function <A>(
       o:
         | O.Lens<IState, any, A>
         | O.Iso<IState, any, A>
-        | O.Equivalence<IState, any, A>
+        | O.Equivalence<IState, any, A>,
     ) {
       return useBoundStore(O.get(o));
     },
     preview: function <A>(
-      o: O.Prism<IState, any, A> | O.Traversal<IState, any, A>
+      o: O.Prism<IState, any, A> | O.Traversal<IState, any, A>,
     ) {
       return useBoundStore(O.preview(o));
     },
@@ -24,7 +24,7 @@ export function createHooks<IState>(
       o:
         | O.Prism<IState, any, A>
         | O.Traversal<IState, any, A>
-        | O.Fold<IState, A>
+        | O.Fold<IState, A>,
     ) {
       return useBoundStore(O.collect(o));
     },
@@ -36,11 +36,11 @@ export function createHooks<IState>(
         | O.Prism<IState, any, A>
         | O.Traversal<IState, any, A>
         | O.Equivalence<IState, any, A>
-        | O.Setter<IState, any, A>
+        | O.Setter<IState, any, A>,
     ) {
       return useCallback(
         (value: A) => useBoundStore.setState(O.set(o)(value)),
-        [o]
+        [o],
       );
     },
     setValue: function <A>(
@@ -51,11 +51,11 @@ export function createHooks<IState>(
         | O.Traversal<IState, any, A>
         | O.Equivalence<IState, any, A>
         | O.Setter<IState, any, A>,
-      value: A
+      value: A,
     ) {
       return useCallback(
         () => useBoundStore.setState(O.set(o)(value)),
-        [o, value]
+        [o, value],
       );
     },
     modify: function <A>(
@@ -65,7 +65,7 @@ export function createHooks<IState>(
         | O.Prism<IState, any, A>
         | O.Traversal<IState, any, A>
         | O.Equivalence<IState, any, A>,
-      f: (a: A) => A
+      f: (a: A) => A,
     ) {
       return useCallback(() => useBoundStore.setState(O.modify(o)(f)), [o, f]);
     },
@@ -75,15 +75,15 @@ export function createHooks<IState>(
         | O.Iso<IState, any, A>
         | O.Prism<IState, any, A>
         | O.Traversal<IState, any, A>
-        | O.Equivalence<IState, any, A>
+        | O.Equivalence<IState, any, A>,
     ) {
       return useCallback(
         (f: (a: A) => A) => useBoundStore.setState(O.modify(o)(f)),
-        [o]
+        [o],
       );
     },
     remove: function <A>(
-      o: O.Prism<IState, any, A> | O.Traversal<IState, any, A>
+      o: O.Prism<IState, any, A> | O.Traversal<IState, any, A>,
     ) {
       return useCallback(() => useBoundStore.setState(O.remove(o)), [o]);
     },
@@ -92,12 +92,12 @@ export function createHooks<IState>(
       o:
         | O.Lens<IState, any, A>
         | O.Iso<IState, any, A>
-        | O.Equivalence<IState, any, A>
+        | O.Equivalence<IState, any, A>,
     ) {
       const value = useBoundStore(O.get(o));
       const setValue = useCallback(
         (value: A | undefined) => useBoundStore.setState(O.set(o)(value)),
-        [o]
+        [o],
       );
       return [value, setValue] as const;
     },
@@ -106,33 +106,47 @@ export function createHooks<IState>(
         | O.Lens<IState, any, A>
         | O.Iso<IState, any, A>
         | O.Equivalence<IState, any, A>,
-      value: A | undefined
+      value: A | undefined,
     ) {
       const value_ = useBoundStore(O.get(o));
       const setValue = useCallback(
         () => useBoundStore.setState(O.set(o)(value)),
-        [o, value]
+        [o, value],
+      );
+      return [value_, setValue] as const;
+    },
+    lensModify: function <A>(
+      o:
+        | O.Lens<IState, any, A>
+        | O.Iso<IState, any, A>
+        | O.Equivalence<IState, any, A>,
+      f: (a: A) => A,
+    ) {
+      const value_ = useBoundStore(O.get(o));
+      const setValue = useCallback(
+        () => useBoundStore.setState(O.modify(o)(f)),
+        [f, o],
       );
       return [value_, setValue] as const;
     },
     opt: function <A>(
-      o: O.Prism<IState, any, A> | O.Traversal<IState, any, A>
+      o: O.Prism<IState, any, A> | O.Traversal<IState, any, A>,
     ) {
       const value = useBoundStore(O.preview(o));
       const setValue = useCallback(
         (value: A | undefined) => useBoundStore.setState(O.set(o)(value)),
-        [o]
+        [o],
       );
       return [value, setValue] as const;
     },
     optValue: function <A>(
       o: O.Prism<IState, any, A> | O.Traversal<IState, any, A>,
-      value: A | undefined
+      value: A | undefined,
     ) {
       const value_ = useBoundStore(O.preview(o));
       const setValue = useCallback(
         () => useBoundStore.setState(O.set(o)(value)),
-        [o, value]
+        [o, value],
       );
       return [value_, setValue] as const;
     },

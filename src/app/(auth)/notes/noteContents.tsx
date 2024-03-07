@@ -2,31 +2,21 @@
 
 import { luLink, luExternalLink, contents } from "./noteContents.css";
 import { getHTML } from "@/server/actions";
-import { Errable, fromSuccess } from "@/utils/errable";
 import { useEffect, useState } from "react";
 import { Box } from "@/components/box";
 import { ReactNode } from "react";
 import { LuLink, LuExternalLink } from "react-icons/lu";
 import { HTML } from "@/components/html";
-import { useStr } from "@/components/store";
-
-function Failure({ message }: { message: string }) {
-  return (
-    <Box>
-      The note has error <code>{message}</code>.
-    </Box>
-  );
-}
+import { oState, useMainStore } from "@/components/store";
 
 export function NoteContents({ id }: { id: string }) {
-  const [htmlRequest, setHTMLRequest] = useState<Errable<string>>();
+  const [html, setHTMLRequest] = useState<string>();
   useEffect(() => {
-    getHTML(id, false).then(setHTMLRequest);
+    getHTML(id, false).then((res) => {
+      if (res) setHTMLRequest(res);
+    });
   }, [id]);
-  if (!htmlRequest) return null;
-  if (htmlRequest._tag === "failure")
-    return <Failure message={htmlRequest.message} />;
-  const html = fromSuccess(htmlRequest);
+  if (!html) return null;
   return (
     <Box className={contents}>
       <NoteHTML html={html} />
@@ -34,6 +24,7 @@ export function NoteContents({ id }: { id: string }) {
   );
 }
 
+const oFocused = oState.prop("focusedNote");
 function InnerLink({
   target,
   className,
@@ -43,7 +34,7 @@ function InnerLink({
   className?: string;
   children: ReactNode;
 }) {
-  const navigate = useStr.focusedNote.set(target);
+  const navigate = useMainStore.setValue(oFocused, target);
   return (
     <button onClick={navigate} className={className}>
       {children}

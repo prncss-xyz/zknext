@@ -7,7 +7,9 @@ export async function getNotes() {
 }
 
 export async function getHTML(id: string, body: boolean) {
-  return notes.getHTML(id, body);
+  const res = await notes.getHTML(id, body);
+  if (res._tag === "success") return res.result;
+  return "";
 }
 
 export async function getNote(id: string) {
