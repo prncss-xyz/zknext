@@ -1,20 +1,40 @@
 import * as O from "optics-ts";
+import { getOFilterNumberBound } from "./optics";
+import { nullMainStore } from "@/components/store";
+import { nullQuery } from "@/core";
+import { nullFilter } from "@/core/filters";
 
 describe("optics", () => {
-  // this is not testing the application, but an undocumented assumption
-  // about optics-ts
-  describe("library", () => {
-    interface Test {
-      a: {
-        b: number;
-      };
-      c: number;
-    }
-    const x: Test = { a: { b: 1 }, c: 2 };
-    it("should reuse structure on update", () => {
-      const lens = O.optic<Test>().prop("c");
-      const y = O.set(lens)(3)(x);
-      expect(y.a).toBe(x.a);
+  describe("getOFilterNumberBound", () => {
+    it("should preview bound value", () => {
+      const o = getOFilterNumberBound("wordcount", true);
+      expect(
+        O.get(o)({
+          ...nullMainStore,
+          query: {
+            ...nullQuery,
+            filter: { ...nullFilter, wordcount: { start: 3 } },
+          },
+        }),
+      ).toBe(3);
+    });
+    it("should update bound value", () => {
+      const o = getOFilterNumberBound("wordcount", true);
+      expect(
+        O.set(o)(3)({
+          ...nullMainStore,
+          query: {
+            ...nullQuery,
+            filter: { ...nullFilter, wordcount: { end: 1 } },
+          },
+        }),
+      ).toEqual({
+        ...nullMainStore,
+        query: {
+          ...nullQuery,
+          filter: { ...nullFilter, wordcount: { start: 3 } },
+        },
+      });
     });
   });
 });

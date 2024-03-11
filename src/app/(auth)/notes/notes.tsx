@@ -1,13 +1,18 @@
 "use client";
 
-import * as O from "optics-ts";
 import { LuChevronUp, LuChevronDown, LuCheck } from "react-icons/lu";
-import clsx from "clsx";
 import { Box } from "@/components/box";
-import { INote, isStringField, optFields } from "@/core/note";
-import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import {
+  DateField,
+  DateRangeField,
+  INote,
+  NumberField,
+  isNumberField,
+  optFields,
+} from "@/core/note";
+import { ReactNode, useMemo } from "react";
 import { ISort, OrderField } from "@/core/sorters";
-import { getBound, isValidBound, nullQuery, setBound, IQuery } from "@/core";
+import { nullQuery } from "@/core";
 import { Clear } from "@/components/clear";
 import { RoundedButtonOpt } from "@/components/roundedButtonOpt";
 import { Label } from "@/components/label";
@@ -25,8 +30,19 @@ import {
   oQuery,
   oHidden,
   neg,
+  oIds,
+  oSorted,
+  oHiddenCount,
+  getOFilterActive,
+  getOFilterNumberBound,
+  getOFilterDateBound,
+  oFilteredCount,
+  getORestictField,
+  oRestrictKanbans,
 } from "@/utils/optics";
-import { useResults } from "./results";
+import { RangeField } from "@/core/filters";
+import { Input } from "@/components/input";
+import { dateString, numberString } from "@/utils/encodec";
 
 const oFocused = oState.prop("focusedNote");
 function Entry({ note }: { note: INote }) {
@@ -43,107 +59,50 @@ function Entry({ note }: { note: INote }) {
   );
 }
 
-/*
-function Bound_({ field, start }: { field: OrderField; start: boolean }) {
-  const [query, setQuery] = useQuery();
-  const bound = getBound(query, field, start);
-  const [value, setValue] = useState(bound);
-  // this is needed beacuse the contents of bound can be either last edited contents or a value corresponding to last update of query
-  useEffect(() => {
-    setValue(bound);
-  }, [bound]);
-  const valid = isValidBound(field, value);
-  const register = useCallback(() => {
-    if (!value) return;
-    setQuery(setBound(query, field, start, value));
-  }, [field, query, setQuery, start, value]);
-  const keyDownHandler = useCallback(
-    (event: any) => {
-      const key: string = event.key;
-      if (key !== "Enter") return;
-      register();
-    },
-    [register],
-  );
-  if (isStringField(field)) return <Box width="navInputWidth" />;
+function BoundNumber({ field, start }: { field: NumberField; start: boolean }) {
+  const o = useMemo(() => getOFilterNumberBound(field, start), [field, start]);
+  const [value, setValue] = useMainStore.lens(o);
   return (
-    <Box
-      as="input"
-      color={valid ? "muted" : "error"}
+    <Input
       width="navInputWidth"
       textAlign="center"
       backgroundColor="foreground2"
       borderRadius={2}
       px={2}
+      encodec={numberString}
       value={value}
-      onKeyDown={keyDownHandler}
-      onChange={(e: any) => {
-        const value_ = String(e.target.value);
-        return setValue(value_);
-      }}
-      onBlur={register}
+      setValue={setValue}
     />
   );
 }
-*/
 
-/*
-function Bound({ field, start }: { field: OrderField; start: boolean }) {
-  const [query, setQuery] = useQuery();
-  const bound = getBound(query, field, start);
-  const [value, setValue] = useState(bound);
-  // this is needed beacuse the contents of bound can be either last edited contents or a value corresponding to last update of query
-  useEffect(() => {
-    setValue(bound);
-  }, [bound]);
-  const valid = isValidBound(field, value);
-  const register = useCallback(() => {
-    if (!value) return;
-    setQuery(setBound(query, field, start, value));
-  }, [field, query, setQuery, start, value]);
-  const keyDownHandler = useCallback(
-    (event: any) => {
-      const key: string = event.key;
-      if (key !== "Enter") return;
-      register();
-    },
-    [register],
-  );
-  if (isStringField(field)) return <Box width="navInputWidth" />;
+function BoundDate({
+  field,
+  start,
+}: {
+  field: DateField | DateRangeField;
+  start: boolean;
+}) {
+  const o = useMemo(() => getOFilterDateBound(field, start), [field, start]);
+  const [value, setValue] = useMainStore.lens(o);
   return (
-    <Box
-      as="input"
-      color={valid ? "muted" : "error"}
+    <Input
       width="navInputWidth"
       textAlign="center"
       backgroundColor="foreground2"
       borderRadius={2}
       px={2}
+      encodec={dateString}
       value={value}
-      onKeyDown={keyDownHandler}
-      onChange={(e: any) => {
-        const value_ = String(e.target.value);
-        return setValue(value_);
-      }}
-      onBlur={register}
+      setValue={setValue}
     />
   );
 }
-*/
 
-/*
-function QueryCheckBox({ field }: { field: OrderField }) {
-  const [query, setQuery] = useQuery();
-  const active = isActiveField(query, field);
-  const toggle = useCallback(
-    () =>
-      active
-        ? setQuery(deActivateField(query, field))
-        : setQuery(activateField(query, field)),
-    [active, field, query, setQuery],
-  );
-  if (!optFields.includes(field) || field === "title")
-    return <SmallButtonOpt />;
+function QueryCheckBox({ field }: { field: RangeField }) {
+  const o = useMemo(() => getOFilterActive(field), [field]);
+  const [active, toggle] = useMainStore.lensModify(o, neg);
+  if (!optFields.includes(field)) return <SmallButtonOpt />;
   return (
     <SmallButtonOpt
       active={active}
@@ -159,7 +118,6 @@ function QueryCheckBox({ field }: { field: OrderField }) {
     </SmallButtonOpt>
   );
 }
-*/
 
 function SortSelectorField(sort: ISort) {
   const field = useMainStore.get(oField);
@@ -173,27 +131,62 @@ function SortSelectorField(sort: ISort) {
   );
 }
 
-function QuerySelectorRow({ field }: { field: OrderField }) {
+function OrderSelectorRow({ field }: { field: OrderField }) {
   return (
     <Box display="flex" flexDirection="row" gap={5}>
-      {/* <QueryCheckBox field={field} /> */}
+      <SmallButtonOpt />
       <Box width="fieldWidth">{field}</Box>
       <Box display="flex" flexDirection="row" gap={2}>
         <SortSelectorField field={field} asc={true} />
         <SortSelectorField field={field} asc={false} />
       </Box>
-      <Box display="flex" flexDirection="row" gap={2}>
-        {/* <Bound field={field} start={true} /> */}
-        {/* <Bound field={field} start={false} /> */}
+      <Box display="flex" flexDirection="row" gap={2} color="muted">
+        <Box width="navInputWidth" px={2} />
+        <Box width="navInputWidth" px={2} />
       </Box>
     </Box>
   );
 }
 
+function QuerySelectorRow({ field }: { field: RangeField }) {
+  return (
+    <Box display="flex" flexDirection="row" gap={5}>
+      <QueryCheckBox field={field} />
+      <Box width="fieldWidth">{field}</Box>
+      <Box display="flex" flexDirection="row" gap={2}>
+        <SortSelectorField field={field} asc={true} />
+        <SortSelectorField field={field} asc={false} />
+      </Box>
+      <Box display="flex" flexDirection="row" gap={2} color="muted">
+        {isNumberField(field) ? (
+          <>
+            <BoundNumber field={field} start={true} />
+            <BoundNumber field={field} start={false} />
+          </>
+        ) : (
+          (field === "mtime" || field === field) && (
+            <>
+              <BoundDate field={field} start={true} />
+              <BoundDate field={field} start={false} />
+            </>
+          )
+        )}
+      </Box>
+    </Box>
+  );
+}
+
+function QuerySelectorOptRow({
+  field,
+}: {
+  field: "event" | "since" | "until" | "due";
+}) {
+  const o = useMemo(() => getORestictField(field), [field]);
+  const enabled = useMainStore.get(o);
+  return enabled && <QuerySelectorRow field={field} />;
+}
+
 function QuerySelector({}: {}) {
-  const {
-    restrict: { event, due, since, until },
-  } = useResults();
   return (
     <Box
       p={10}
@@ -205,13 +198,13 @@ function QuerySelector({}: {}) {
       gap={2}
       alignItems="center"
     >
-      <QuerySelectorRow field="title" />
+      <OrderSelectorRow field="title" />
       <QuerySelectorRow field="wordcount" />
       <QuerySelectorRow field="mtime" />
-      {event && <QuerySelectorRow field="event" />}
-      {due && <QuerySelectorRow field="due" />}
-      {since && <QuerySelectorRow field="since" />}
-      {until && <QuerySelectorRow field="until" />}
+      <QuerySelectorOptRow field="event" />
+      <QuerySelectorOptRow field="due" />
+      <QuerySelectorOptRow field="since" />
+      <QuerySelectorOptRow field="until" />
     </Box>
   );
 }
@@ -242,9 +235,7 @@ function Tag({ tag }: { tag: string }) {
 }
 
 function Dirs({}: {}) {
-  const {
-    restrict: { ids },
-  } = useResults();
+  const ids = useMainStore.get(oIds);
   return (
     <Box
       display="flex"
@@ -294,6 +285,7 @@ function KanbanView({ kanban }: { kanban: string }) {
 }
 
 function KanbanViews({}: {}) {
+  const kanbans = useMainStore.get(oRestrictKanbans);
   return (
     <Box
       display="flex"
@@ -303,7 +295,9 @@ function KanbanViews({}: {}) {
       gap={5}
     >
       <Label>Kanban</Label>
-      <KanbanView kanban="todo" />
+      {kanbans.map((kanban) => (
+        <KanbanView key={kanban} kanban={kanban} />
+      ))}
     </Box>
   );
 }
@@ -328,9 +322,7 @@ function NoteViews({}: {}) {
 }
 
 function Tags({}: {}) {
-  const {
-    restrict: { tags },
-  } = useResults();
+  const tags = useMainStore.get(oTags);
   return (
     <Box
       display="flex"
@@ -349,20 +341,17 @@ function Tags({}: {}) {
 }
 
 function ClearAll({}: {}) {
-  const [current, navigate] = useMainStore.lensValue(oQuery, nullQuery);
-  // TODO: deep equal compare (cuurent, nullQuery)
-  const active = false;
+  const navigate = useMainStore.setValue(oQuery, nullQuery);
   return (
-    <ButtonOpt active={active} navigate={navigate}>
+    <ButtonOpt active={false} navigate={navigate}>
       Reset
     </ButtonOpt>
   );
 }
 
 function HiddenButton({ children }: { children: ReactNode }) {
-  const { restrict } = useResults();
   const [active, toggle] = useMainStore.lensModify(oHidden, neg);
-  if (restrict.hidden)
+  if (active)
     return (
       <ButtonOpt active={active} toggle={toggle}>
         {children}
@@ -371,15 +360,37 @@ function HiddenButton({ children }: { children: ReactNode }) {
   return <Box>{children}</Box>;
 }
 
-function Hidden({}: {}) {
-  const {
-    restrict: { hidden },
-  } = useResults();
-  return <HiddenButton>{`${hidden} hidden`}</HiddenButton>;
+function Count({}: {}) {
+  // seems to be a bug in optics-ts typing
+  const filtered = useMainStore.get(oFilteredCount as any) as number;
+  const hidden = useMainStore.get(oHiddenCount);
+  return (
+    <Box
+      display="flex"
+      flexDirection="row"
+      justifyContent="flex-end"
+      borderWidth={1}
+      borderStyle="bottom"
+      gap={5}
+    >
+      <Box>{filtered} entries,</Box>
+      <HiddenButton>{`${hidden} hidden`}</HiddenButton>
+    </Box>
+  );
+}
+
+function Entries({}: {}) {
+  const notes = useMainStore.get(oSorted);
+  return (
+    <Box display="flex" flexDirection="column">
+      {notes.map((note) => (
+        <Entry key={note.id} note={note} />
+      ))}
+    </Box>
+  );
 }
 
 export function Notes({}: {}) {
-  const { notes } = useResults();
   return (
     <Box
       mx={5}
@@ -410,22 +421,8 @@ export function Notes({}: {}) {
           </Box>
           <QuerySelector />
         </Box>
-        <Box
-          display="flex"
-          flexDirection="row"
-          justifyContent="flex-end"
-          borderWidth={1}
-          borderStyle="bottom"
-          gap={5}
-        >
-          <Box>{notes.length} entries,</Box>
-          <Hidden />
-        </Box>
-        <Box display="flex" flexDirection="column">
-          {notes.map((note) => (
-            <Entry key={note.id} note={note} />
-          ))}
-        </Box>
+        <Count />
+        <Entries />
       </Box>
     </Box>
   );

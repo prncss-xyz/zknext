@@ -1,7 +1,8 @@
 import { getNotes } from "@/server/actions";
 import { Notes } from "./notes";
 import { Overlay } from "./note";
-import { ResultsProvider } from "./results";
+import { ComputedValues } from "./computedValues";
+import { Box } from "@/components/box";
 
 // this prevents scanning notes directory at build time
 export const dynamic = "force-dynamic";
@@ -9,9 +10,10 @@ export const dynamic = "force-dynamic";
 export default async function Page({}: {}) {
   const notes = await getNotes();
   return (
-    <ResultsProvider notes={notes}>
+    <Box display="flex" flexDirection="column">
+      <ComputedValues notes={notes} />
       <Overlay />
       <Notes />
-    </ResultsProvider>
+    </Box>
   );
 }

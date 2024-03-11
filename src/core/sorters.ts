@@ -11,6 +11,7 @@ import {
 
 export type OrderField = NumberField | DateField | DateRangeField | StringField;
 export const orderFields: OrderField[] = [
+  "id",
   "mtime",
   "title",
   "event",

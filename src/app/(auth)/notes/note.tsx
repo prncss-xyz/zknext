@@ -5,7 +5,7 @@ import { sprinkles } from "@/sprinkles.css";
 import { Box, BoxProps } from "@/components/box";
 import { useClickOutside } from "@/components/clickOutside";
 import { overlay } from "@/components/overlay.css";
-import { IDateRange, INote, NumberField } from "@/core/note";
+import { IDateRange, INote } from "@/core/note";
 import { OrderField } from "@/core/sorters";
 import { upDirs } from "@/utils/path";
 import { basename } from "path";
@@ -18,10 +18,9 @@ import {
   LuChevronRight,
   LuX,
 } from "react-icons/lu";
-import { useResults } from "./results";
 import { dateString } from "@/utils/encodec";
 import { oState, useMainStore } from "@/components/store";
-import { oDir, getOTag } from "@/utils/optics";
+import { oDir, getOTag, oSorted } from "@/utils/optics";
 
 function Dir({ dir }: { dir: string }) {
   const focusClose = useMainStore.setValue(oDir, dir);
@@ -80,24 +79,12 @@ function Order({ field, note }: { field: OrderField; note: INote }) {
   );
 }
 
-function OrderNumber({ field, note }: { field: NumberField; note: INote }) {
-  const value = note[field];
-  if (!value) return;
-  return (
-    <Box display="flex" flexDirection="row" gap={5}>
-      <Box width="labelWidth">{field}</Box>
-      <OrderValue value={value} />
-    </Box>
-  );
-}
-
 function Orders({ note }: { note: INote }) {
   return (
     <Box display="flex" flexDirection="column">
       <Order field="mtime" note={note} />
       <Order field="wordcount" note={note} />
       <Order field="event" note={note} />
-      <Order field="asset" note={note} />
       <Order field="since" note={note} />
       <Order field="due" note={note} />
       <Order field="until" note={note} />
@@ -178,7 +165,7 @@ function getNavNotes(index: number, notes: INote[]) {
 
 function Nav({}: {}) {
   const id = useMainStore.get(oFocused);
-  const { notes } = useResults();
+  const notes = useMainStore.get(oSorted);
   const index = notes.findIndex((note) => note.id === id);
   if (!index) return;
   const navNotes = getNavNotes(index, notes);
@@ -205,7 +192,7 @@ function Nav({}: {}) {
 
 function Note({}: {}) {
   const [id, close] = useMainStore.lensValue(oFocused, "");
-  const { notes } = useResults();
+  const notes = useMainStore.get(oSorted);
   const ref = useClickOutside(close);
   if (!id) return null;
   const index = notes.findIndex((note) => note.id === id);

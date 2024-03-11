@@ -40,7 +40,7 @@ export function ButtonOpt({ children, active, ...params }: ButtonOptProps) {
     <Box
       as={onClick ? "button" : undefined}
       onClick={onClick}
-      className={clsx({ [sprinkles({ color: "active" })]: active })}
+      className={clsx({ [sprinkles({ color: "active", fontWeight: "bold" })]: active })}
       {...props}
     >
       {children}

@@ -8,7 +8,7 @@ type IRange0<T> =
     }
   | undefined;
 
-type IRange<T> = T extends IDateRange ? IRange0<Date> : IRange0<T>;
+export type IRange<T> = T extends IDateRange ? IRange0<Date> : IRange0<T>;
 
 function filterOrder<T>(query: IRange<T>, value: T) {
   if (!query) return true;
@@ -170,3 +170,17 @@ export function applyFilter(
     restrict,
   };
 }
+
+export const nullFilterResults: ReturnType<typeof applyFilter> = {
+  notes: [],
+  restrict: {
+    ids: [],
+    tags: [],
+    kanbans: [],
+    event: false,
+    since: false,
+    due: false,
+    until: false,
+    hidden: 0,
+  },
+};

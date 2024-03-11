@@ -64,10 +64,8 @@ export function isDateRangeField(field: Field): field is DateRangeField {
   return (dateRangeFields as Field[]).includes(field);
 }
 
-export type StringField = {
-  [K in keyof INote]: INote[K] extends string | null ? K : never;
-}[keyof INote];
-export const stringFields: StringField[] = ["asset", "id", "title"];
+export type StringField = "id" | "title";
+export const stringFields: StringField[] = ["id", "title"];
 export function isStringField(field: Field): field is StringField {
   return (stringFields as Field[]).includes(field);
 }

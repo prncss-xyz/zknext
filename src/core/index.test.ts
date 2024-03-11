@@ -603,28 +603,3 @@ describe("since", () => {
     });
   });
 });
-describe("asset", () => {
-  const notes = [
-    { ...nullNote, id: "c.md", asset: "b" },
-    { ...nullNote, id: "e.md" },
-    { ...nullNote, id: "f.md" },
-    { ...nullNote, id: "b.md", asset: "c" },
-    { ...nullNote, id: "a.md", asset: "a" },
-  ];
-  describe("should sort", () => {
-    test("ascending", () => {
-      expect(
-        applyFilter(nullApplyFilterOpts, nullFilter, notes)
-          .notes.sort(getSorter({ field: "asset", asc: true }))
-          .map((note) => note.id),
-      ).toEqual(["e.md", "f.md", "a.md", "c.md", "b.md"]);
-    });
-    test("descending", () => {
-      expect(
-        applyFilter(nullApplyFilterOpts, nullFilter, notes)
-          .notes.sort(getSorter({ field: "asset", asc: false }))
-          .map((note) => note.id),
-      ).toEqual(["b.md", "c.md", "a.md", "f.md", "e.md"]);
-    });
-  });
-});

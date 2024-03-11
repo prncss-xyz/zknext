@@ -1,22 +1,23 @@
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useMemo } from "react";
 import { Box, BoxProps } from "./box";
 import { Encodec } from "@/utils/encodec";
 
 type InputProps<A> = {
   encodec: Encodec<A>;
-  value: A;
-  setValue: (v: A) => void;
-} & Omit<BoxProps, "as" | "onClick">;
+  value: A | undefined;
+  setValue: (v: A | undefined) => void;
+} & Omit<BoxProps, "as" | "onClick" | "value">;
 
 function useInput<A>(
   { encode, decode }: Encodec<A>,
-  [value, setValue]: [value: A, setValue: (s: A) => void],
+  value: A | undefined,
+  setValue: (s: A | undefined) => void,
 ) {
   const [encoded, setEncoded] = useState(encode(value));
   useEffect(() => {
     setEncoded(encode(value));
   }, [encode, value]);
-  const decoded = decode(encoded);
+  const decoded = useMemo(() => decode(encoded), [decode, encoded]);
   const onChange = useCallback((e: any) => {
     const value_ = String(e.target.value);
     setEncoded(value_);
@@ -34,7 +35,7 @@ function useInput<A>(
     },
     [decoded, setValue],
   );
-  const error = encoded && decoded === undefined;
+  const error = Boolean(encoded) && decoded === undefined;
   return { encoded, onChange, onBlur, onKeyDown, error };
 }
 
@@ -44,10 +45,11 @@ export function Input<A>({
   setValue,
   ...props
 }: InputProps<A>) {
-  const { encoded, onChange, onBlur, onKeyDown, error } = useInput(encodec, [
+  const { encoded, onChange, onBlur, onKeyDown, error } = useInput(
+    encodec,
     value,
     setValue,
-  ]);
+  );
   return (
     <Box
       as="input"
