@@ -11,7 +11,7 @@ import {
   optFields,
 } from "@/core/note";
 import { ReactNode, useMemo } from "react";
-import { ISort, OrderField } from "@/core/sorters";
+import { OrderField } from "@/core/sorters";
 import { nullQuery } from "@/core";
 import { Clear } from "@/components/clear";
 import { RoundedButtonOpt } from "@/components/roundedButtonOpt";
@@ -20,10 +20,7 @@ import { SmallButtonOpt } from "@/components/smallButtonOpt";
 import { ButtonOpt } from "@/components/buttonOpt";
 import { oState, useMainStore } from "@/components/store";
 import {
-  oAsc,
   oDir,
-  oField,
-  oSort,
   getOTag,
   oTags,
   oView,
@@ -39,6 +36,7 @@ import {
   oFilteredCount,
   getORestictField,
   oRestrictKanbans,
+  getOSelectorField,
 } from "@/utils/optics";
 import { RangeField } from "@/core/filters";
 import { Input } from "@/components/input";
@@ -119,14 +117,18 @@ function QueryCheckBox({ field }: { field: RangeField }) {
   );
 }
 
-function SortSelectorField(sort: ISort) {
-  const field = useMainStore.get(oField);
-  const asc = useMainStore.get(oAsc);
-  const active = field == sort.field && asc == sort.asc;
-  const navigate = useMainStore.setValue(oSort, sort);
+function SortSelectorField({
+  field,
+  asc,
+}: {
+  field: OrderField;
+  asc: boolean;
+}) {
+  const o = useMemo(() => getOSelectorField(field, asc), [asc, field]);
+  const [active, navigate] = useMainStore.lensValue(o, true);
   return (
     <SmallButtonOpt active={active} navigate={navigate}>
-      {sort.asc ? <LuChevronUp /> : <LuChevronDown />}
+      {asc ? <LuChevronUp /> : <LuChevronDown />}
     </SmallButtonOpt>
   );
 }

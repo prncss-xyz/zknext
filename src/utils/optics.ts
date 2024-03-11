@@ -1,6 +1,8 @@
 import { oState } from "@/components/store";
 import { RangeField } from "@/core/filters";
 import { DateField, DateRangeField, NumberField } from "@/core/note";
+import { OrderField } from "@/core/sorters";
+import { compose } from "optics-ts";
 
 export const neg = (b: boolean) => !b;
 
@@ -45,9 +47,17 @@ export const oFilteredCount = oResults
   .to((notes) => notes.length);
 export const getOFilter = (field: RangeField) => oFilter.prop(field);
 
-export const oRestrictKanbans = oResults.prop("restrict").prop("kanbans")
+export const oRestrictKanbans = oResults.prop("restrict").prop("kanbans");
 export const getORestictField = (field: "event" | "since" | "until" | "due") =>
   oResults.prop("restrict").prop(field);
+
+export const getOSelectorField = (field: OrderField, asc: boolean) => {
+  return oSort.lens(
+    (s) => s.field === field && s.asc === asc,
+    // setting to false has unspecified behavior
+    () => ({ field, asc }),
+  );
+};
 
 export const getOFilterNumberBound = (field: NumberField, start: boolean) =>
   oFilter.lens(
