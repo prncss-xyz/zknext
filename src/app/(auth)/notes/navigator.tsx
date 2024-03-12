@@ -1,0 +1,345 @@
+"use client";
+
+import { LuChevronUp, LuChevronDown, LuCheck } from "react-icons/lu";
+import { Box } from "@/components/box";
+import {
+  DateField,
+  DateRangeField,
+  NumberField,
+  isNumberField,
+  optFields,
+} from "@/core/note";
+import { useMemo } from "react";
+import { OrderField } from "@/core/sorters";
+import { nullQuery } from "@/core";
+import { Clear } from "@/components/clear";
+import { RoundedButtonOpt } from "@/components/roundedButtonOpt";
+import { Label } from "@/components/label";
+import { SmallButtonOpt } from "@/components/smallButtonOpt";
+import { ButtonOpt } from "@/components/buttonOpt";
+import { useMainStore } from "@/components/store";
+import {
+  oDir,
+  getOTag,
+  oQuery,
+  oIds,
+  getOFilterActive,
+  getOFilterNumberBound,
+  getOFilterDateBound,
+  getORestictField,
+  oRestrictKanbans,
+  oRestrictTags,
+  oSort,
+  oView,
+  oTags,
+} from "@/utils/optics";
+import { RangeField } from "@/core/filters";
+import { Input } from "@/components/input";
+import { dateString, numberString } from "@/utils/encodec";
+
+function BoundNumber({ field, start }: { field: NumberField; start: boolean }) {
+  const o = useMemo(() => getOFilterNumberBound(field, start), [field, start]);
+  const [value, setValue] = useMainStore.lens(o);
+  return (
+    <Input
+      width="navInputWidth"
+      textAlign="center"
+      backgroundColor="foreground2"
+      borderRadius={2}
+      px={2}
+      encodec={numberString}
+      value={value}
+      setValue={setValue}
+    />
+  );
+}
+
+function BoundDate({
+  field,
+  start,
+}: {
+  field: DateField | DateRangeField;
+  start: boolean;
+}) {
+  const o = useMemo(() => getOFilterDateBound(field, start), [field, start]);
+  const [value, setValue] = useMainStore.lens(o);
+  return (
+    <Input
+      width="navInputWidth"
+      textAlign="center"
+      backgroundColor="foreground2"
+      borderRadius={2}
+      px={2}
+      encodec={dateString}
+      value={value}
+      setValue={setValue}
+    />
+  );
+}
+
+function QueryCheckBox({ field }: { field: RangeField }) {
+  const o = useMemo(() => getOFilterActive(field), [field]);
+  const [active, toggle] = useMainStore.toggle(o);
+  if (!optFields.includes(field)) return <SmallButtonOpt />;
+  return (
+    <SmallButtonOpt
+      active={active}
+      toggle={toggle}
+      borderStyle="all"
+      borderWidth={1}
+      my={2}
+      display="flex"
+      flexDirection="row"
+      alignItems="center"
+    >
+      {active && <LuCheck size={14} />}
+    </SmallButtonOpt>
+  );
+}
+
+function SortSelectorField({
+  field,
+  asc,
+}: {
+  field: OrderField;
+  asc: boolean;
+}) {
+  const [active, navigate] = useMainStore.lensActivate(oSort, { asc, field });
+  return (
+    <SmallButtonOpt active={active} navigate={navigate}>
+      {asc ? <LuChevronUp /> : <LuChevronDown />}
+    </SmallButtonOpt>
+  );
+}
+
+function OrderSelectorRow({ field }: { field: OrderField }) {
+  return (
+    <Box display="flex" flexDirection="row" gap={5}>
+      <SmallButtonOpt />
+      <Box width="fieldWidth">{field}</Box>
+      <Box display="flex" flexDirection="row" gap={2}>
+        <SortSelectorField field={field} asc={true} />
+        <SortSelectorField field={field} asc={false} />
+      </Box>
+      <Box display="flex" flexDirection="row" gap={2} color="muted">
+        <Box width="navInputWidth" px={2} />
+        <Box width="navInputWidth" px={2} />
+      </Box>
+    </Box>
+  );
+}
+
+function QuerySelectorRow({ field }: { field: RangeField }) {
+  return (
+    <Box display="flex" flexDirection="row" gap={5}>
+      <QueryCheckBox field={field} />
+      <Box width="fieldWidth">{field}</Box>
+      <Box display="flex" flexDirection="row" gap={2}>
+        <SortSelectorField field={field} asc={true} />
+        <SortSelectorField field={field} asc={false} />
+      </Box>
+      <Box display="flex" flexDirection="row" gap={2} color="muted">
+        {isNumberField(field) ? (
+          <>
+            <BoundNumber field={field} start={true} />
+            <BoundNumber field={field} start={false} />
+          </>
+        ) : (
+          (field === "mtime" || field === field) && (
+            <>
+              <BoundDate field={field} start={true} />
+              <BoundDate field={field} start={false} />
+            </>
+          )
+        )}
+      </Box>
+    </Box>
+  );
+}
+
+function QuerySelectorOptRow({
+  field,
+}: {
+  field: "event" | "since" | "until" | "due";
+}) {
+  const o = useMemo(() => getORestictField(field), [field]);
+  const enabled = useMainStore.get(o);
+  return enabled && <QuerySelectorRow field={field} />;
+}
+
+function QuerySelector({}: {}) {
+  return (
+    <Box
+      p={10}
+      borderRadius={5}
+      borderWidth={1}
+      borderStyle="all"
+      display="flex"
+      flexDirection="column"
+      gap={2}
+      alignItems="center"
+    >
+      <OrderSelectorRow field="title" />
+      <QuerySelectorRow field="wordcount" />
+      <QuerySelectorRow field="mtime" />
+      <QuerySelectorOptRow field="event" />
+      <QuerySelectorOptRow field="due" />
+      <QuerySelectorOptRow field="since" />
+      <QuerySelectorOptRow field="until" />
+    </Box>
+  );
+}
+
+function Dir({ dir }: { dir: string }) {
+  const [active, navigate] = useMainStore.lensActivate(oDir, dir);
+  if (dir === "") return <Clear active={active} navigate={navigate} />;
+  return (
+    <RoundedButtonOpt
+      active={active}
+      navigate={navigate}
+      fontFamily="monospace"
+    >
+      {dir}
+    </RoundedButtonOpt>
+  );
+}
+
+function Tag({ tag }: { tag: string }) {
+  const oTag = useMemo(() => getOTag(tag), [tag]);
+  const [active, toggle] = useMainStore.toggle(oTag);
+  return (
+    <RoundedButtonOpt active={active} toggle={toggle}>
+      {tag}
+    </RoundedButtonOpt>
+  );
+}
+
+function Dirs({}: {}) {
+  const ids = useMainStore.get(oIds);
+  return (
+    <Box
+      display="flex"
+      flexDirection="row"
+      alignItems="baseline"
+      flexWrap="wrap"
+      gap={5}
+    >
+      <Label>Dirs</Label>
+      {ids.map((id) => (
+        <Dir key={id} dir={id} />
+      ))}
+    </Box>
+  );
+}
+
+function ClearTags({}: {}) {
+  const [active, navigate] = useMainStore.lensActivate(oTags, []);
+  return <Clear active={active} navigate={navigate} />;
+}
+
+function Views({}: {}) {
+  return (
+    <Box display="flex" flexDirection="column" gap={5}>
+      <NoteViews />
+      <KanbanViews />
+    </Box>
+  );
+}
+
+function KanbanView({ kanban }: { kanban: string }) {
+  const [active, navigate] = useMainStore.lensActivate(oView, {
+    type: "kanban",
+    kanban,
+  });
+  return (
+    <ButtonOpt active={active} navigate={navigate}>
+      {kanban}
+    </ButtonOpt>
+  );
+}
+
+function KanbanViews({}: {}) {
+  const kanbans = useMainStore.get(oRestrictKanbans);
+  return (
+    <Box
+      display="flex"
+      flexDirection="row"
+      alignItems="baseline"
+      flexWrap="wrap"
+      gap={5}
+    >
+      <Label>Kanban</Label>
+      {kanbans.map((kanban) => (
+        <KanbanView key={kanban} kanban={kanban} />
+      ))}
+    </Box>
+  );
+}
+
+function NoteViews({}: {}) {
+  const [active, navigate] = useMainStore.lensActivate(oView, {
+    type: "notes",
+  });
+  return (
+    <ButtonOpt
+      active={active}
+      navigate={navigate}
+      display="flex"
+      flexDirection="row"
+      alignItems="baseline"
+      flexWrap="wrap"
+      gap={5}
+    >
+      <Label>Notes</Label>
+    </ButtonOpt>
+  );
+}
+
+function Tags({}: {}) {
+  const tags = useMainStore.get(oRestrictTags);
+  return (
+    <Box
+      display="flex"
+      flexDirection="row"
+      alignItems="baseline"
+      flexWrap="wrap"
+      gap={5}
+    >
+      <Label>Tags</Label>
+      <ClearTags />
+      {tags.map((tag) => (
+        <Tag key={tag} tag={tag} />
+      ))}
+    </Box>
+  );
+}
+
+function ClearAll({}: {}) {
+  const [active, navigate] = useMainStore.lensActivate(oQuery, nullQuery);
+  return (
+    <ButtonOpt active={active} navigate={navigate}>
+      Reset
+    </ButtonOpt>
+  );
+}
+
+export function Navigator({}: {}) {
+  return (
+    <Box
+      width="100%"
+      maxWidth="screenMaxWidth"
+      display="flex"
+      flexDirection="row"
+      gap={5}
+      justifyContent="space-between"
+    >
+      <Box display="flex" flexDirection="column" gap={5}>
+        <Views />
+        <Dirs />
+        <Tags />
+        <ClearAll />
+      </Box>
+      <QuerySelector />
+    </Box>
+  );
+}

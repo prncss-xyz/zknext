@@ -12,7 +12,7 @@ export const nullMainStore = {
   results: nullFilterResults,
 };
 
-type IState = typeof nullMainStore;
+export type IState = typeof nullMainStore;
 
 export const oState = optic<IState>();
 

@@ -2,11 +2,10 @@ import { oState } from "@/components/store";
 import { RangeField } from "@/core/filters";
 import { DateField, DateRangeField, NumberField } from "@/core/note";
 import { OrderField } from "@/core/sorters";
-import { compose } from "optics-ts";
 
 export const neg = (b: boolean) => !b;
 
-function update(x: string) {
+function setElement(x: string) {
   return function (xs: string[], value: boolean) {
     const xs_ = xs.filter((x_) => !Object.is(x_, x));
     if (value) {
@@ -16,48 +15,47 @@ function update(x: string) {
     return xs_;
   };
 }
-
-function view(x: string) {
+function isElement(x: string) {
   return function (xs: string[]) {
     return xs.includes(x);
   };
 }
 
-export const oTags = oState.prop("query").prop("filter").prop("tags");
+export const oDir = oState.prop("query").prop("filter").prop("dir");
+export const oFocused = oState.prop("focusedNote");
+export const oFocusedNote = oState.to((s) =>
+  s.results.notes.find(({ id }) => id === s.focusedNote),
+);
+export const oFocusedIndex = oState.to((s) =>
+  s.sorted.findIndex(({ id }) => id === s.focusedNote),
+);
+export const oQuery = oState.prop("query");
+export const oTags = oQuery.prop("filter").prop("tags");
 export function getOTag(tag: string) {
-  return oTags.lens(view(tag), update(tag));
+  return oTags.lens(isElement(tag), setElement(tag));
 }
-
-export const oSort = oState.prop("query").prop("sort");
+export const oSort = oQuery.prop("sort");
 export const oField = oSort.prop("field");
 export const oAsc = oSort.prop("asc");
-export const oDir = oState.prop("query").prop("filter").prop("dir");
-export const oQuery = oState.prop("query");
 export const oFilter = oQuery.prop("filter");
 export const oView = oFilter.prop("view");
-export const oViewType = oQuery.prop("filter").prop("view").prop("type");
-export const oHidden = oQuery.prop("filter").prop("hidden");
+export const oViewType = oView.prop("type");
+export const oHidden = oFilter.prop("hidden");
 export const oSorted = oState.prop("sorted");
 export const oResults = oState.prop("results");
-export const oHiddenCount = oResults.prop("restrict").prop("hidden");
-export const oIds = oResults.prop("restrict").prop("ids");
+export const oRestrict = oResults.prop("restrict");
+export const oHiddenCount = oRestrict.prop("hidden");
+export const oIds = oRestrict.prop("ids");
+export const oRestrictTags = oRestrict.prop("tags");
 export const oFiltered = oResults.prop("notes");
 export const oFilteredCount = oResults
   .prop("notes")
   .to((notes) => notes.length);
 export const getOFilter = (field: RangeField) => oFilter.prop(field);
 
-export const oRestrictKanbans = oResults.prop("restrict").prop("kanbans");
+export const oRestrictKanbans = oRestrict.prop("kanbans");
 export const getORestictField = (field: "event" | "since" | "until" | "due") =>
   oResults.prop("restrict").prop(field);
-
-export const getOSelectorField = (field: OrderField, asc: boolean) => {
-  return oSort.lens(
-    (s) => s.field === field && s.asc === asc,
-    // setting to false has unspecified behavior
-    () => ({ field, asc }),
-  );
-};
 
 export const getOFilterNumberBound = (field: NumberField, start: boolean) =>
   oFilter.lens(

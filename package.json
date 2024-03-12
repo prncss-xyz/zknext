@@ -24,6 +24,7 @@
     "@vanilla-extract/next-plugin": "^2.3.7",
     "@vanilla-extract/sprinkles": "^1.6.1",
     "clsx": "^2.1.0",
+    "dequal": "^2.0.3",
     "fast-equals": "^5.0.1",
     "hast-util-to-html": "^9.0.0",
     "hast-util-to-text": "^4.0.0",

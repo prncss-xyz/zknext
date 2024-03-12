@@ -9,8 +9,8 @@ import { IDateRange, INote } from "@/core/note";
 import { OrderField } from "@/core/sorters";
 import { upDirs } from "@/utils/path";
 import { basename } from "path";
-import { ReactNode, useMemo } from "react";
-import { NoteContents } from "./noteContents";
+import { ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { NoteHTML } from "@/components/noteContents";
 import {
   LuChevronFirst,
   LuChevronLast,
@@ -19,13 +19,27 @@ import {
   LuX,
 } from "react-icons/lu";
 import { dateString } from "@/utils/encodec";
-import { oState, useMainStore } from "@/components/store";
-import { oDir, getOTag, oSorted } from "@/utils/optics";
+import { useMainStore } from "@/components/store";
+import {
+  oDir,
+  oSorted,
+  oFocused,
+  oFocusedNote,
+  oFocusedIndex,
+  getOTag,
+  oSort,
+} from "@/utils/optics";
+import { getHTML } from "@/server/actions";
 
 function Dir({ dir }: { dir: string }) {
-  const focusClose = useMainStore.setValue(oDir, dir);
+  const activate = useMainStore.setValue(oDir, dir);
+  const close = useMainStore.setValue(oFocused, "");
+  const onClick = useCallback(() => {
+    close();
+    activate();
+  }, [activate, close]);
   return (
-    <Box as="button" fontFamily="monospace" onClick={focusClose}>
+    <Box as="button" fontFamily="monospace" onClick={onClick}>
       {basename(dir)}
     </Box>
   );
@@ -33,11 +47,16 @@ function Dir({ dir }: { dir: string }) {
 
 function Tag({ tag }: { tag: string }) {
   const o = useMemo(() => getOTag(tag), [tag]);
-  const focusClose = useMainStore.setValue(o, false);
+  const activate = useMainStore.setValue(o, true);
+  const close = useMainStore.setValue(oFocused, "");
+  const onClick = useCallback(() => {
+    close();
+    activate();
+  }, [activate, close]);
   return (
     <Box
       as="button"
-      onClick={focusClose}
+      onClick={onClick}
       display="flex"
       flexDirection="row"
       alignItems="baseline"
@@ -69,11 +88,19 @@ function OrderValue({ value }: { value: string | number | Date | IDateRange }) {
 }
 
 function Order({ field, note }: { field: OrderField; note: INote }) {
+  const activate = useMainStore.setValue(oSort, { field, asc: true });
+  const close = useMainStore.setValue(oFocused, "");
+  const onClick = useCallback(() => {
+    close();
+    activate();
+  }, [activate, close]);
   const value = note[field];
   if (!value) return;
   return (
     <Box display="flex" flexDirection="row" gap={5}>
-      <Box width="labelWidth">{field}</Box>
+      <Box as="button" onClick={onClick} width="labelWidth">
+        {field}
+      </Box>
       <OrderValue value={value} />
     </Box>
   );
@@ -94,7 +121,7 @@ function Orders({ note }: { note: INote }) {
 
 function NoteHeader({ note }: { note: INote }) {
   return (
-    <Box display="flex" flexDirection="column">
+    <Box display="flex" flexDirection="column" gap={10}>
       <Box display="flex" flexDirection="row" alignItems="baseline" gap={5}>
         {upDirs(false, note.id)
           .slice(1)
@@ -120,14 +147,12 @@ function ToNoteBox({ children, ...props }: { children: ReactNode } & BoxProps) {
   return <Box {...props}>{children}</Box>;
 }
 
-const oFocused = oState.prop("focusedNote");
 function ToNote({
   target,
   children,
   ...props
 }: { target: string; children: ReactNode } & BoxProps) {
-  const [id, navigate] = useMainStore.lensValue(oFocused, "");
-  const active = id === target;
+  const [active, navigate] = useMainStore.lensActivate(oFocused, target);
   return (
     <ToNoteBox
       as="button"
@@ -154,33 +179,25 @@ function ToNoteOpt({
   );
 }
 
-function getNavNotes(index: number, notes: INote[]) {
-  return {
-    first: notes[0]?.id,
-    prev: notes[index - 1]?.id,
-    next: notes[index + 1]?.id,
-    last: notes.at(-1)?.id,
-  };
-}
-
 function Nav({}: {}) {
-  const id = useMainStore.get(oFocused);
   const notes = useMainStore.get(oSorted);
-  const index = notes.findIndex((note) => note.id === id);
-  if (!index) return;
-  const navNotes = getNavNotes(index, notes);
+  const index = useMainStore.getter(oFocusedIndex);
+  const first = notes[0]?.id;
+  const prev = notes[index - 1]?.id;
+  const next = notes[index + 1]?.id;
+  const last = notes.at(-1)?.id;
   return (
     <Box display="flex" flexDirection="row" justifyContent="flex-end" gap={5}>
-      <ToNoteOpt target={navNotes.first}>
+      <ToNoteOpt target={first}>
         <LuChevronFirst />
       </ToNoteOpt>
-      <ToNoteOpt target={navNotes.prev}>
+      <ToNoteOpt target={prev}>
         <LuChevronLeft />
       </ToNoteOpt>
-      <ToNoteOpt target={navNotes.next}>
+      <ToNoteOpt target={next}>
         <LuChevronRight />
       </ToNoteOpt>
-      <ToNoteOpt target={navNotes.last}>
+      <ToNoteOpt target={last}>
         <LuChevronLast />
       </ToNoteOpt>
       <ToNoteOpt target="">
@@ -191,13 +208,19 @@ function Nav({}: {}) {
 }
 
 function Note({}: {}) {
-  const [id, close] = useMainStore.lensValue(oFocused, "");
-  const notes = useMainStore.get(oSorted);
+  const close = useMainStore.setValue(oFocused, "");
   const ref = useClickOutside(close);
-  if (!id) return null;
-  const index = notes.findIndex((note) => note.id === id);
-  if (index === -1) return;
-  const note = notes[index];
+  const note = useMainStore.getter(oFocusedNote);
+  const [html, setHTMLRequest] = useState<string>();
+  const id = useMainStore.get(oFocused);
+  useEffect(() => {
+    id &&
+      getHTML(id, false).then((res) => {
+        if (res) setHTMLRequest(res);
+      });
+  }, [id]);
+  if (!note) return;
+  if (html === undefined) return;
   return (
     <Box
       ref={ref}
@@ -214,12 +237,12 @@ function Note({}: {}) {
     >
       <Nav />
       <NoteHeader note={note} />
-      <NoteContents id={id} />
+      <NoteHTML html={html} />
     </Box>
   );
 }
 
-export function Overlay({}: {}) {
+export function FocusedNoteOverlay({}: {}) {
   return (
     <Box className={overlay}>
       <Box

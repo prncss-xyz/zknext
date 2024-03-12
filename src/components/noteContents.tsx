@@ -1,30 +1,13 @@
 "use client";
 
 import { luLink, luExternalLink, contents } from "./noteContents.css";
-import { getHTML } from "@/server/actions";
-import { useEffect, useState } from "react";
 import { Box } from "@/components/box";
 import { ReactNode } from "react";
 import { LuLink, LuExternalLink } from "react-icons/lu";
 import { HTML } from "@/components/html";
-import { oState, useMainStore } from "@/components/store";
+import { useMainStore } from "@/components/store";
+import { oFocused } from "@/utils/optics";
 
-export function NoteContents({ id }: { id: string }) {
-  const [html, setHTMLRequest] = useState<string>();
-  useEffect(() => {
-    getHTML(id, false).then((res) => {
-      if (res) setHTMLRequest(res);
-    });
-  }, [id]);
-  if (!html) return null;
-  return (
-    <Box className={contents}>
-      <NoteHTML html={html} />
-    </Box>
-  );
-}
-
-const oFocused = oState.prop("focusedNote");
 function InnerLink({
   target,
   className,
@@ -72,5 +55,9 @@ const components = {
 };
 
 export function NoteHTML({ html }: { html: string }) {
-  return <HTML html={html} components={components} />;
+  return (
+    <Box className={contents}>
+      <HTML html={html} components={components} />
+    </Box>
+  );
 }

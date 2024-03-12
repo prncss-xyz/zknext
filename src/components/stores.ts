@@ -2,18 +2,32 @@
 import { useCallback } from "react";
 import * as O from "optics-ts";
 import { StoreApi, UseBoundStore } from "zustand";
+import { dequal } from "dequal";
+
+const neg = (b: boolean) => !b;
 
 export function createHooks<IState>(
   useBoundStore: UseBoundStore<StoreApi<IState>>,
 ) {
   return {
+    setState: (
+      partial:
+        | IState
+        | Partial<IState>
+        | ((state: IState) => IState | Partial<IState>),
+      replace?: boolean | undefined,
+    ) => useBoundStore.setState(partial, replace),
     get: function <A>(
       o:
         | O.Lens<IState, any, A>
         | O.Iso<IState, any, A>
         | O.Equivalence<IState, any, A>,
     ) {
-      return useBoundStore(O.get(o));
+      return useBoundStore<A>(O.get<IState, A>(o));
+    },
+    // FIXME: make it one method with get (typing is the issue)
+    getter: function <A>(o: O.Getter<IState, A>) {
+      return useBoundStore(O.get<IState, A>(o));
     },
     preview: function <A>(
       o: O.Prism<IState, any, A> | O.Traversal<IState, any, A>,
@@ -28,7 +42,6 @@ export function createHooks<IState>(
     ) {
       return useBoundStore(O.collect(o));
     },
-
     set: function <A>(
       o:
         | O.Lens<IState, any, A>
@@ -87,7 +100,6 @@ export function createHooks<IState>(
     ) {
       return useCallback(() => useBoundStore.setState(O.remove(o)), [o]);
     },
-
     lens: function <A>(
       o:
         | O.Lens<IState, any, A>
@@ -114,6 +126,33 @@ export function createHooks<IState>(
         [o, value],
       );
       return [value_, setValue] as const;
+    },
+    lensActivate: function <A>(
+      o:
+        | O.Lens<IState, any, A>
+        | O.Iso<IState, any, A>
+        | O.Equivalence<IState, any, A>,
+      value: A,
+    ) {
+      const value_ = useBoundStore(O.get(o));
+      const setValue = useCallback(
+        () => useBoundStore.setState(O.set(o)(value)),
+        [o, value],
+      );
+      return [dequal(value, value_), setValue] as const;
+    },
+    toggle: function (
+      o:
+        | O.Lens<IState, any, boolean>
+        | O.Iso<IState, any, boolean>
+        | O.Equivalence<IState, any, boolean>,
+    ) {
+      const active = useBoundStore(O.get(o));
+      const toggle = useCallback(
+        () => useBoundStore.setState(O.modify(o)(neg)),
+        [o],
+      );
+      return [active, toggle] as const;
     },
     lensModify: function <A>(
       o:
