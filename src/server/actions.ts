@@ -7,11 +7,13 @@ export async function getNotes() {
 }
 
 export async function getHTML(id: string, body: boolean) {
-  const res = await notes.getHTML(id, body);
-  if (res._tag === "success") return res.result;
-  return "";
+  return await notes.getHTML(id, body);
 }
 
 export async function getNote(id: string) {
   return notes.getNote(id);
+}
+
+export async function dump() {
+  return await notes.dump();
 }

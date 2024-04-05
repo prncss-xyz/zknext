@@ -22,11 +22,8 @@ function getProcessor(components: Components) {
     .use(rehypeParse, { fragment: true })
     .use(rehypeReact, {
       createElement,
-      // @ts-expect-error: the react types are missing.
       Fragment: prod.Fragment,
-      // @ts-expect-error: the react types are missing.
       jsx: prod.jsx,
-      // @ts-expect-error: the react types are missing.
       jsxs: prod.jsxs,
       components,
     } as any);

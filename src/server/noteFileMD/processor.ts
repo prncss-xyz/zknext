@@ -16,13 +16,12 @@ import { unified } from "unified";
 import { visit } from "unist-util-visit";
 import * as yaml from "js-yaml";
 import { INote } from "@/core/note";
-import { Errable, fromSuccess } from "@/utils/errable";
 
 const defaultExtension = ".md";
 
 export interface ITransform {
   id: string;
-  idToMeta: Map<string, Errable<INote>>;
+  idToMeta: Map<string, INote>;
 }
 
 function transform(opts: ITransform | null) {
@@ -30,27 +29,26 @@ function transform(opts: ITransform | null) {
     if (!opts) return;
     const { idToMeta, id } = opts;
     const dir = dirname(id);
-    const { links } = fromSuccess(idToMeta.get(id)!);
+    const { links } = idToMeta.get(id)!;
     let i = 0;
     if (idToMeta) {
       visit(tree, "wikiLink", (node: any) => {
         const link_ = links[i++];
         const link = idToMeta.get(link_.target);
-        if (!link || link._tag === "failure") {
+        if (!link) {
           node.data.hProperties.className = clsx({
             internal: true,
             broken: true,
           });
           return;
         }
-        const { result } = link;
         node.data.hProperties.className = clsx({
           internal: true,
-          titled: result.title,
+          titled: link.title,
         });
-        const value = result.title || result.id;
+        const value = link.title || link.id;
         node.data.alias = value;
-        node.data.hProperties.href = relative(dir, result.id);
+        node.data.hProperties.href = relative(dir, link.id);
         node.data.hChildren = [{ type: "text", value }];
       });
     }

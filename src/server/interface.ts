@@ -4,15 +4,26 @@ import type { Errable } from "@/utils/errable";
 export interface ICache {}
 export const CacheType = Symbol.for("Cache");
 
-export interface IRepo {
+export interface IDB {
+  init: () => Promise<void>;
+  updateNote: (note: INote) => Promise<void>;
+  deleteNote: (id: string) => Promise<void>;
   getNotes: () => Promise<INote[]>;
-  getNote: (id: string) => Promise<Errable<INote>>;
-  getHTML: (id: string, document: boolean) => Promise<Errable<string>>;
+}
+
+export const DBType = Symbol.for("DB");
+
+export interface IRepo {
+  dump: () => Promise<unknown>;
+  getNotes: () => Promise<INote[]>;
+  getNote: (id: string) => Promise<INote | undefined>;
+  getHTML: (id: string, document: boolean) => Promise<string>;
 }
 export const RepoType = Symbol.for("Repo");
 
 export interface ConfigData {
   notebookDir: string;
+  cache: string;
 }
 export interface IConfig {
   getConfig: () => Promise<ConfigData>;
@@ -27,7 +38,7 @@ export interface INoteGetHTMLOpts {
   /** id of note being converted */
   id: string;
   /** parsing metadata */
-  idToMeta: Map<string, Errable<INote>>;
+  idToMeta: Map<string, INote>;
   /** wether to create a documnet (true) or a fragment (false) */
   document: boolean;
   /** string to use when there is no title */
@@ -36,6 +47,6 @@ export interface INoteGetHTMLOpts {
 export interface INoteFile {
   shouldReadFile: (id: string) => boolean;
   getMeta(fileData: FileData, raw: string): Promise<Errable<INote>>;
-  getHTML(opts: INoteGetHTMLOpts, raw: string): Promise<Errable<string>>;
+  getHTML(opts: INoteGetHTMLOpts, raw: string): Promise<string>;
 }
 export const NoteType = Symbol.for("Note");

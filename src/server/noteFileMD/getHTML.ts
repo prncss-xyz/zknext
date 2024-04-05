@@ -2,7 +2,6 @@ import rehypeStringify from "rehype-stringify";
 import rehypeFormat from "rehype-format";
 import rehypeDocument from "rehype-document";
 import { getProcessor } from "./processor";
-import { fromSuccess, Success } from "@/utils/errable";
 import { INoteGetHTMLOpts } from "../interface";
 
 /**
@@ -14,19 +13,16 @@ import { INoteGetHTMLOpts } from "../interface";
  * @returns parsed html
  */
 export async function getHTML(opts: INoteGetHTMLOpts, md: string) {
-  let html: string;
   let title = "";
   if (opts.document) {
     const { idToMeta, id } = opts;
-    const resRequest = idToMeta.get(id)!;
-    if (resRequest._tag === "failure") return resRequest;
-    const res = fromSuccess(resRequest);
+    const res = idToMeta.get(id)!;
+    if (!res) return "";
     title = res.title || opts.untitled;
   }
   let p: any = getProcessor(opts);
   p = opts.document ? p.use(rehypeDocument, { title }) : p;
   p = p.use(rehypeStringify).use(rehypeFormat);
   const processed = await p.process(md);
-  html = String(processed);
-  return new Success(html);
+  return String(processed);
 }
