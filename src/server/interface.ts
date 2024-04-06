@@ -4,11 +4,18 @@ import type { Errable } from "@/utils/errable";
 export interface ICache {}
 export const CacheType = Symbol.for("Cache");
 
+export interface INoteDB {
+  id: string;
+  mtime: number;
+  payload: string;
+}
+
 export interface IDB {
   init: () => Promise<void>;
   updateNote: (note: INote) => Promise<void>;
   deleteNote: (id: string) => Promise<void>;
-  getNotes: () => Promise<INote[]>;
+  getNotes: () => Promise<INoteDB[]>;
+  decode: (noteDB: INoteDB) => INote;
 }
 
 export const DBType = Symbol.for("DB");

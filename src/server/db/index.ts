@@ -5,29 +5,26 @@ import { INote } from "@/core/note";
 import SQLite from "better-sqlite3";
 import { Kysely, SqliteDialect } from "kysely";
 import { ConfigType } from "../interface";
-import type { IConfig, IDB } from "../interface";
+import type { IConfig, IDB, INoteDB } from "../interface";
 import { mkdir } from "node:fs/promises";
 import { dirname } from "node:path";
 
 interface Database {
-  note: INoteTable;
+  note: INoteDB;
 }
 
-function encode(note: INote): INoteTable {
+function encode(note: INote): INoteDB {
   return {
     id: note.id,
-    note,
+    mtime: note.mtime.getTime(),
+    payload: JSON.stringify(note),
   };
-}
-
-interface INoteTable {
-  id: string;
-  note: INote;
 }
 
 type InternalDB = Awaited<ReturnType<typeof initDb>>;
 
 async function initDb(filepath: string) {
+  console.log("database file: %s", filepath);
   const dialect = new SqliteDialect({
     database: new SQLite(filepath),
   });
@@ -38,7 +35,8 @@ async function initDb(filepath: string) {
     .createTable("note")
     .ifNotExists()
     .addColumn("id", "text", (cb) => cb.primaryKey())
-    .addColumn("entry", "jsonb")
+    .addColumn("mtime", "integer")
+    .addColumn("payload", "text")
     .execute();
   return db;
 }
@@ -62,10 +60,16 @@ export class DBLive implements IDB {
     if (db === undefined) throw new Error("call init before using db");
     await db.deleteFrom("note").where("id", "=", id).execute();
   }
+  decode(noteDB: INoteDB) {
+    // TODO: validate
+    return JSON.parse(noteDB.payload);
+  }
   async getNotes() {
     const db = this.db;
     if (db === undefined) throw new Error("call init before using db");
-    const res = await db.selectFrom("note").select("note").execute();
-    return res.map(({ note }) => note);
+    return await db
+      .selectFrom("note")
+      .select(["id", "mtime", "payload"])
+      .execute();
   }
 }

@@ -9,8 +9,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "npx tsc --noEmit; next lint",
-    "test": "vitest",
+    "dev:test": "vitest",
+    "test:lint": "npx tsc --noEmit; next lint",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "ZK_NOTEBOOK_DIR=sample npx playwright test",
     "test:ui": "vitest --ui"
