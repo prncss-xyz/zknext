@@ -10,13 +10,6 @@ export function createHooks<IState>(
   useBoundStore: UseBoundStore<StoreApi<IState>>,
 ) {
   return {
-    setState: (
-      partial:
-        | IState
-        | Partial<IState>
-        | ((state: IState) => IState | Partial<IState>),
-      replace?: boolean | undefined,
-    ) => useBoundStore.setState(partial, replace),
     get: function <A>(
       o:
         | O.Lens<IState, any, A>
@@ -134,12 +127,12 @@ export function createHooks<IState>(
         | O.Equivalence<IState, any, A>,
       value: A,
     ) {
-      const value_ = useBoundStore(O.get(o));
+      const active = useBoundStore((s) => dequal(O.get(o)(s), value));
       const setValue = useCallback(
         () => useBoundStore.setState(O.set(o)(value)),
         [o, value],
       );
-      return [dequal(value, value_), setValue] as const;
+      return [active, setValue] as const;
     },
     toggle: function (
       o:
