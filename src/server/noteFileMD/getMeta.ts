@@ -6,23 +6,24 @@ import { wordsCount } from "words-count";
 import { Element, Root } from "hast";
 import { normalizePath } from "@/utils/path";
 import { getMatter, getProcessor } from "./processor";
-import { Failure, Success } from "@/utils/errable";
+import { Errable, Failure, Success } from "@/utils/errable";
 import { fromPreamble } from "./fromPreamble";
+import { INote, nullNote } from "@/core/note";
 
 interface FileData {
   id: string;
-  mtime: Date;
+  mtime: number;
 }
 
 interface RawLink {
   context: string;
   target: string;
   position: Element["position"];
-  title: string | null;
+  title: string;
 }
 
 interface AnalyzeResult {
-  title: string | null;
+  title: string;
   links: RawLink[];
   rawText: string;
   wordcount: number;
@@ -30,7 +31,7 @@ interface AnalyzeResult {
 
 function analyse(tree: Root): AnalyzeResult {
   const links: RawLink[] = [];
-  let title: string | null = null;
+  let title: string = "";
   visitParents(tree, "element", function (node, ancestors) {
     if (node.tagName === "h1") {
       title = toText(node as any);
@@ -89,7 +90,10 @@ export interface AnalyzeMDOpts {
   prefix: string;
 }
 
-export async function getMeta(fileData: FileData, raw: string) {
+export async function getMeta(
+  fileData: FileData,
+  raw: string,
+): Promise<Errable<INote>> {
   const processor = getProcessor(null).use(spit);
   const result = (await processor.process(raw)).result as AnalyzeResult;
   const { title, wordcount, links: links_ } = result;
@@ -110,6 +114,7 @@ export async function getMeta(fileData: FileData, raw: string) {
     return new Failure("invalid data (preamble)");
   }
   return new Success({
+    ...nullNote,
     ...fileData,
     ...validated,
     title,

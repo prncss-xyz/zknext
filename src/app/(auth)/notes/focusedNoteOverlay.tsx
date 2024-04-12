@@ -5,7 +5,7 @@ import { sprinkles } from "@/sprinkles.css";
 import { Box, BoxProps } from "@/components/box";
 import { useClickOutside } from "@/components/clickOutside";
 import { overlay } from "@/components/overlay.css";
-import { IDateRange, INote } from "@/core/note";
+import { INote, RangeField, NumberField } from "@/core/note";
 import { OrderField } from "@/core/sorters";
 import { upDirs } from "@/utils/path";
 import { basename } from "path";
@@ -71,23 +71,7 @@ function Tag({ tag }: { tag: string }) {
   );
 }
 
-function OrderValue({ value }: { value: string | number | Date | IDateRange }) {
-  if (typeof value === "number" || typeof value === "string") {
-    return <Box>{value}</Box>;
-  }
-  if (value instanceof Date) {
-    return <Box>{dateString.encode(value)}</Box>;
-  }
-  return (
-    <Box display="flex" flexDirection="row">
-      <Box>{value.start !== null && dateString.encode(value.start)}</Box>
-      <Box>-</Box>
-      <Box>{value.end !== null && dateString.encode(value.end)}</Box>
-    </Box>
-  );
-}
-
-function Order({ field, note }: { field: OrderField; note: INote }) {
+function useOrder<T extends OrderField>(field: T, note: INote) {
   const activate = useMainStore.setValue(oSort, { field, asc: true });
   const close = useMainStore.setValue(oFocused, "");
   const onClick = useCallback(() => {
@@ -95,26 +79,71 @@ function Order({ field, note }: { field: OrderField; note: INote }) {
     activate();
   }, [activate, close]);
   const value = note[field];
-  if (!value) return;
+  return [onClick, value] as const;
+}
+
+function OrderLayout({
+  label,
+  onClick,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+}) {
   return (
     <Box display="flex" flexDirection="row" gap={5}>
       <Box as="button" onClick={onClick} width="labelWidth">
-        {field}
+        {label}
       </Box>
-      <OrderValue value={value} />
+      {children}
     </Box>
+  );
+}
+
+function OrderNumber({ field, note }: { field: NumberField; note: INote }) {
+  const [onClick, value] = useOrder(field, note);
+  if (!value) return;
+  return (
+    <OrderLayout label={field} onClick={onClick}>
+      <Box>{value}</Box>
+    </OrderLayout>
+  );
+}
+
+function OrderDate({ field, note }: { field: NumberField; note: INote }) {
+  const [onClick, value] = useOrder(field, note);
+  if (!value) return;
+  return (
+    <OrderLayout label={field} onClick={onClick}>
+      <Box>{dateString.encode(value)}</Box>
+    </OrderLayout>
+  );
+}
+
+function OrderRange({ field, note }: { field: RangeField; note: INote }) {
+  const [onClick, value] = useOrder(field, note);
+  if (!value) return;
+  return (
+    <OrderLayout label={field} onClick={onClick}>
+      <Box display="flex" flexDirection="row">
+        <Box>{value.start && dateString.encode(value.start)}</Box>
+        <Box>-</Box>
+        <Box>{value.end && dateString.encode(value.end)}</Box>
+      </Box>
+    </OrderLayout>
   );
 }
 
 function Orders({ note }: { note: INote }) {
   return (
     <Box display="flex" flexDirection="column">
-      <Order field="mtime" note={note} />
-      <Order field="wordcount" note={note} />
-      <Order field="event" note={note} />
-      <Order field="since" note={note} />
-      <Order field="due" note={note} />
-      <Order field="until" note={note} />
+      <OrderDate field="mtime" note={note} />
+      <OrderNumber field="wordcount" note={note} />
+      <OrderRange field="event" note={note} />
+      <OrderDate field="since" note={note} />
+      <OrderDate field="due" note={note} />
+      <OrderDate field="until" note={note} />
     </Box>
   );
 }

@@ -13,6 +13,7 @@ export class Encodec<T> {
 export const numberString = new Encodec<number>(
   (num) => (num === undefined ? "" : String(num)),
   (str) => {
+    if (str === "") return undefined;
     const num = Number(str);
     if (isNaN(num)) return undefined;
     return num;
@@ -23,20 +24,20 @@ function padTo2Digits(num: number) {
   return num.toString().padStart(2, "0");
 }
 
-export const dateString = new Encodec<Date>(
-  (date) =>
-    date === undefined
-      ? ""
-      : [
-          date.getFullYear(),
-          padTo2Digits(date.getMonth() + 1),
-          padTo2Digits(date.getDate()),
-        ].join("-"),
+export const dateString = new Encodec<number>(
+  (num) => {
+    if (num === undefined) return "";
+    const date = new Date(num);
+    return [
+      date.getUTCFullYear(),
+      padTo2Digits(date.getUTCMonth() + 1),
+      padTo2Digits(date.getUTCDate()),
+    ].join("-");
+  },
   (s) => {
-    let [y, m, d] = s.split(/\-/).map((s) => parseInt(s));
-    if (isNaN(y)) return undefined;
-    if (isNaN(m)) return new Date(y, 0);
-    if (isNaN(d)) return new Date(y, m - 1);
-    return new Date(y, m - 1, d);
+    const date = new Date(s);
+    const num = date.getTime();
+    if (isNaN(num)) return undefined;
+    return num;
   },
 );

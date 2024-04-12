@@ -4,33 +4,38 @@ import { z } from "zod";
 const hourMs = 60 * 60 * 1000;
 const dayMs = 24 * hourMs;
 
-function nextHour(date: Date) {
-  const next = new Date(date);
-  next.setTime(next.getTime() + hourMs);
-  return next;
+function nextHour(date: number) {
+  return date + hourMs;
 }
 
-function nextDay(date: Date) {
-  const next = new Date(date);
-  next.setTime(next.getTime() + dayMs);
-  return next;
+function nextDay(date: number) {
+  return date + dayMs;
 }
 
-const date = z.preprocess(function (raw: any) {
-  if (raw === undefined) return null;
-  // sometimes YAML parser return dates, sometimes strings that can be converted to dates
+// sometimes YAML parser return dates, sometimes strings that can be converted to dates
+const date = z.preprocess(function (raw: unknown) {
+  if (raw === undefined) return undefined;
+  let d: Date | undefined;
+
   if (typeof raw === "string") {
-    raw = new Date(raw);
-    if (isNaN(raw.getTime())) throw new Error("Invalid date");
+    d = new Date(raw);
   }
-  return raw;
-}, z.nullable(z.date()));
+  if (raw instanceof Date) {
+    d = raw;
+  }
+  if (d !== undefined) {
+    const num = d.getTime();
+    if (isNaN(num)) throw new Error("Invalid date");
+    return num;
+  }
+  throw new Error("Invalid date");
+}, z.optional(z.number()));
 
 const durationParser = z.optional(z.string());
 
 const dateRange = z.preprocess(
   function (raw: any) {
-    if (!raw) return null;
+    if (!raw) return undefined;
     if (typeof raw === "string" || raw instanceof Date) {
       raw = { start: raw, end: raw };
     }
@@ -40,7 +45,7 @@ const dateRange = z.preprocess(
     if (!start) throw new Error("Invalid date range (missing start)");
 
     const duration = durationParser.parse(raw.duration);
-    let end: Date | null;
+    let end: number | undefined;
     end = date.parse(raw.end);
 
     // exactly one of them must be defined
@@ -63,11 +68,13 @@ const dateRange = z.preprocess(
     return { start, end };
   },
 
-  z.nullable(
-    z.object({
-      start: z.date(),
-      end: z.date(),
-    }),
+  z.optional(
+    z
+      .object({
+        start: z.number(),
+        end: z.number(),
+      })
+      .or(z.undefined()),
   ),
 );
 

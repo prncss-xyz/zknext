@@ -58,9 +58,7 @@ export class RepoLive implements IRepo {
     const { notebookDir } = await this.config.getConfig();
     const fullPath = path.join(notebookDir, id);
     try {
-      console.log(0, fullPath);
       const stats = await stat(fullPath);
-      console.log(1, fullPath);
       if (stats.isDirectory()) return 0;
       const { mtime } = stats;
       if (cached && cached.mtime === mtime.getTime()) {
@@ -68,7 +66,10 @@ export class RepoLive implements IRepo {
         return 0;
       }
       const contents = await readFile(fullPath, "utf8");
-      const noteReq = await this.note.getMeta({ id, mtime }, contents);
+      const noteReq = await this.note.getMeta(
+        { id, mtime: mtime.getTime() },
+        contents,
+      );
       if (noteReq._tag === "success") {
         const note = fromSuccess(noteReq);
         update(id, note);
@@ -108,7 +109,6 @@ export class RepoLive implements IRepo {
       this.scanFile(id, undefined, update, remove);
     }, 1000);
     // setup the watcher first, as files can be touched before all notes have been scanned
-    console.log("hello")
     // FIXME: as of node v21.7.1 on linux, file or repo deletion triggers an exception
     // cf. https://github.com/nodejs/node/issues/49995
     watch(notebookDir, { persistent: false, recursive: true }, (_event, id) => {

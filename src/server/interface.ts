@@ -39,7 +39,7 @@ export const ConfigType = Symbol.for("Config");
 
 export interface FileData {
   id: string;
-  mtime: Date;
+  mtime: number;
 }
 export interface INoteGetHTMLOpts {
   /** id of note being converted */

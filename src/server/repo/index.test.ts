@@ -35,6 +35,9 @@ export class DBMock implements IDB {
   async getNotes() {
     return [];
   }
+  decode() {
+    return undefined as any;
+  }
 }
 
 function getContainerNotes() {

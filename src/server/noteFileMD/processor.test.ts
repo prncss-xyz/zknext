@@ -5,7 +5,7 @@ describe("tmp", async () => {
     const file = `---
 ---
 `;
-    expect(getMatter(file, null)).toEqual(null);
+    expect(getMatter(file, undefined)).toEqual(undefined);
   });
 
   it("should parse yaml frontmatter", () => {
@@ -13,13 +13,13 @@ describe("tmp", async () => {
 value: true
 ---
 `;
-    expect(getMatter(file, null)).toEqual({ value: true });
+    expect(getMatter(file, undefined)).toEqual({ value: true });
   });
   it("should throw on invalid yaml syntax", () => {
     const file = `---
 !: tasdfrue
 ---
 `;
-    expect(() => getMatter(file, null)).toThrowError();
+    expect(() => getMatter(file, undefined)).toThrowError();
   });
 });

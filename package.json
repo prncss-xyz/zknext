@@ -6,11 +6,13 @@
     "url": "https://github.com/prncss-xyz/zknext/"
   },
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "dev": "next dev",
     "dev:test": "vitest",
-    "test:lint": "npx tsc --noEmit; next lint",
+    "test:types": "npx tsc --noEmit",
+    "test:lint": "next lint",
+    "test:unit": "vitest",
     "test:coverage": "vitest run --coverage",
     "test:e2e": "ZK_NOTEBOOK_DIR=sample npx playwright test",
     "test:ui": "vitest --ui"

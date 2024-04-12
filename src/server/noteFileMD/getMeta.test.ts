@@ -2,18 +2,18 @@ import { fromSuccess } from "@/utils/errable";
 import { getMeta } from "./getMeta";
 
 describe("analyseMD", () => {
-  const fileData = { id: "a.md", mtime: new Date(0) };
+  const fileData = { id: "a.md", mtime: 0 };
   it("should find the title when there is one", async () => {
     const res_ = await getMeta(fileData, "# title");
     expect(res_._tag).toBe("success");
     const res = fromSuccess(res_);
     expect(res.title).toEqual("title");
   });
-  it("should return null when there is no title", async () => {
+  it("should return undefined when there is no title", async () => {
     const res_ = await getMeta(fileData, "title\n");
     expect(res_._tag).toBe("success");
     const res = fromSuccess(res_);
-    expect(res.title).toEqual(null);
+    expect(res.title).toEqual("");
   });
   it("should return failure when contents are not parsable", async () => {
     const file = `---
@@ -29,7 +29,7 @@ describe("analyseMD", () => {
     const res = fromSuccess(res_);
     expect(res.links).toEqual([]);
   });
-  it("should return null when there is no title", async () => {
+  it("should return undefined when there is no title", async () => {
     const res_ = await getMeta(
       fileData,
       `---

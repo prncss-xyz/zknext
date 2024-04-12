@@ -1,15 +1,14 @@
 import {
-  DateRangeField,
+  RangeField,
   INote,
-  DateField,
   NumberField,
   StringField,
-  isDateField,
   isNumberField,
   isStringField,
+  isRangeField,
 } from "./note";
 
-export type OrderField = NumberField | DateField | DateRangeField | StringField;
+export type OrderField = NumberField | RangeField | StringField;
 export const orderFields: OrderField[] = [
   "id",
   "mtime",
@@ -31,40 +30,28 @@ export const nullSort: ISort = {
   asc: true,
 };
 
-export function getDateRangeSorter(field: DateRangeField) {
+export function getRangeSorter(field: RangeField) {
   return function (a: INote, b: INote) {
     const af = a[field];
     const bf = b[field];
-    if (!af && !bf) return 0;
     // missing field goes last
-    if (!af) return 1;
+    if (!af) {
+      if (!bf) return 0;
+      return 1;
+    }
     if (!bf) return -1;
-    const as = a[field]?.start?.getTime();
-    const bs = b[field]?.start?.getTime();
+    const as_ = af.start;
+    const as = typeof as_ === "number" ? as_ : -Infinity;
+    const bs_ = bf.start;
+    const bs = typeof bs_ === "number" ? bs_ : -Infinity;
     if (as !== bs) {
-      // undefined start is akin to minus infinity
-      if (as === undefined) return -1;
-      if (bs === undefined) return 1;
       return as - bs;
     }
-    const ae = a[field]?.end?.getTime();
-    const be = b[field]?.end?.getTime();
-    if (ae === be) return 0;
-    // undefined end is akin to plus infinity
-    if (ae === undefined) return 1;
-    if (be === undefined) return -1;
+    const ae_ = af.end;
+    const ae = typeof ae_ === "number" ? ae_ : +Infinity;
+    const be_ = bf.end;
+    const be = typeof be_ === "number" ? be_ : +Infinity;
     return ae - be;
-  };
-}
-
-export function getDateSorter(field: DateField) {
-  return function (a: INote, b: INote) {
-    const p = a[field]?.getTime();
-    const q = b[field]?.getTime();
-    if (p === q) return 0;
-    if (p === undefined) return -1;
-    if (q === undefined) return 1;
-    return p - q;
   };
 }
 
@@ -72,18 +59,27 @@ export function getNumberSorter(field: NumberField) {
   return function (a: INote, b: INote) {
     const p = a[field];
     const q = b[field];
+    if (typeof p !== "number") {
+      if (typeof q !== "number") return 0;
+      return 1;
+    }
+    if (typeof q !== "number") return -1;
     return p - q;
   };
 }
 
 export function getStringSorter(field: StringField) {
   return function (a: INote, b: INote) {
-    const p = a[field];
-    const q = b[field];
-    if (p === q) return 0;
-    if (!p) return -1;
-    if (!q) return 1;
-    if (p < q) return -1;
+    const af = a[field];
+    const bf = b[field];
+    // missing field goes last
+    if (!af) {
+      if (!bf) return 0;
+      return 1;
+    }
+    if (!bf) return -1;
+    if (af < bf) return -1;
+    if (af === bf) return 0;
     return 1;
   };
 }
@@ -97,10 +93,10 @@ function switchSorter(field: OrderField) {
   if (isNumberField(field)) {
     return getNumberSorter(field);
   }
-  if (isDateField(field)) {
-    return getDateSorter(field);
+  if (isRangeField(field)) {
+    return getRangeSorter(field);
   }
-  return getDateRangeSorter(field);
+  return getRangeSorter(field);
 }
 
 export function getSorter({ field, asc }: ISort) {

@@ -12,7 +12,7 @@ describe("parseMD", async () => {
   };
   const idToMeta = new Map<string, INote>();
   for (const [k, v] of Object.entries(files)) {
-    const res = await getMeta({ id: k, mtime: new Date(0) }, v);
+    const res = await getMeta({ id: k, mtime: 0 }, v);
     if (res._tag === "success") idToMeta.set(k, fromSuccess(res));
   }
   it("should parse empty string", async () => {

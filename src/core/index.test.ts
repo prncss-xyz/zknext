@@ -179,9 +179,9 @@ describe("applyQuery", () => {
   });
   describe("mtime", () => {
     const notes = [
-      { ...nullNote, id: "a.md", mtime: new Date(1) },
-      { ...nullNote, id: "b.md", mtime: new Date(3) },
-      { ...nullNote, id: "c.md", mtime: new Date(2) },
+      { ...nullNote, id: "a.md", mtime: 1 },
+      { ...nullNote, id: "b.md", mtime: 3 },
+      { ...nullNote, id: "c.md", mtime: 2 },
     ];
     describe("should sort", () => {
       test("ascending", () => {
@@ -206,7 +206,7 @@ describe("applyQuery", () => {
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              mtime: { end: new Date(2) },
+              mtime: { end: 2 },
             },
             notes,
           )
@@ -220,7 +220,7 @@ describe("applyQuery", () => {
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              mtime: { start: new Date(2) },
+              mtime: { start: 2 },
             },
             notes,
           )
@@ -232,10 +232,10 @@ describe("applyQuery", () => {
   });
   describe("due", () => {
     const notes = [
-      { ...nullNote, id: "a.md", due: new Date(1) },
-      { ...nullNote, id: "b.md", due: new Date(3) },
+      { ...nullNote, id: "a.md", due: 1 },
+      { ...nullNote, id: "b.md", due: 3 },
       { ...nullNote, id: "e.md" },
-      { ...nullNote, id: "c.md", due: new Date(2) },
+      { ...nullNote, id: "c.md", due: 2 },
     ];
     describe("should sort", () => {
       test("ascending", () => {
@@ -243,14 +243,14 @@ describe("applyQuery", () => {
           applyFilter(nullApplyFilterOpts, nullFilter, notes)
             .notes.sort(getSorter({ field: "due", asc: true }))
             .map((note) => note.id),
-        ).toEqual(["e.md", "a.md", "c.md", "b.md"]);
+        ).toEqual(["a.md", "c.md", "b.md", "e.md"]);
       });
       test("descending", () => {
         expect(
           applyFilter(nullApplyFilterOpts, nullFilter, notes)
             .notes.sort(getSorter({ field: "due", asc: false }))
             .map((note) => note.id),
-        ).toEqual(["b.md", "c.md", "a.md", "e.md"]);
+        ).toEqual(["e.md", "b.md", "c.md", "a.md"]);
       });
     });
     describe("should filter", () => {
@@ -260,7 +260,7 @@ describe("applyQuery", () => {
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              due: { end: new Date(2) },
+              due: { end: 2 },
             },
             notes,
           )
@@ -274,7 +274,7 @@ describe("applyQuery", () => {
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              due: { start: new Date(2) },
+              due: { start: 2 },
             },
             notes,
           )
@@ -286,10 +286,10 @@ describe("applyQuery", () => {
   });
   describe("until", () => {
     const notes = [
-      { ...nullNote, id: "a.md", until: new Date(1) },
-      { ...nullNote, id: "b.md", until: new Date(3) },
+      { ...nullNote, id: "a.md", until: 1 },
+      { ...nullNote, id: "b.md", until: 3 },
       { ...nullNote, id: "e.md" },
-      { ...nullNote, id: "c.md", until: new Date(2) },
+      { ...nullNote, id: "c.md", until: 2 },
     ];
     describe("should sort", () => {
       test("ascending", () => {
@@ -297,14 +297,14 @@ describe("applyQuery", () => {
           applyFilter(nullApplyFilterOpts, nullFilter, notes)
             .notes.sort(getSorter({ field: "until", asc: true }))
             .map((note) => note.id),
-        ).toEqual(["e.md", "a.md", "c.md", "b.md"]);
+        ).toEqual(["a.md", "c.md", "b.md", "e.md"]);
       });
       test("descending", () => {
         expect(
           applyFilter(nullApplyFilterOpts, nullFilter, notes)
             .notes.sort(getSorter({ field: "until", asc: false }))
             .map((note) => note.id),
-        ).toEqual(["b.md", "c.md", "a.md", "e.md"]);
+        ).toEqual(["e.md", "b.md", "c.md", "a.md"]);
       });
     });
     describe("should filter", () => {
@@ -314,7 +314,7 @@ describe("applyQuery", () => {
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              until: { end: new Date(2) },
+              until: { end: 2 },
             },
             notes,
           )
@@ -328,7 +328,7 @@ describe("applyQuery", () => {
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              until: { start: new Date(2) },
+              until: { start: 2 },
             },
             notes,
           )
@@ -340,10 +340,10 @@ describe("applyQuery", () => {
   });
   describe("since", () => {
     const notes = [
-      { ...nullNote, id: "a.md", since: new Date(1) },
-      { ...nullNote, id: "b.md", since: new Date(3) },
+      { ...nullNote, id: "a.md", since: 1 },
+      { ...nullNote, id: "b.md", since: 3 },
       { ...nullNote, id: "e.md" },
-      { ...nullNote, id: "c.md", since: new Date(2) },
+      { ...nullNote, id: "c.md", since: 2 },
     ];
     describe("should sort", () => {
       test("ascending", () => {
@@ -351,14 +351,14 @@ describe("applyQuery", () => {
           applyFilter(nullApplyFilterOpts, nullFilter, notes)
             .notes.sort(getSorter({ field: "since", asc: true }))
             .map((note) => note.id),
-        ).toEqual(["e.md", "a.md", "c.md", "b.md"]);
+        ).toEqual(["a.md", "c.md", "b.md", "e.md"]);
       });
       test("descending", () => {
         expect(
           applyFilter(nullApplyFilterOpts, nullFilter, notes)
             .notes.sort(getSorter({ field: "since", asc: false }))
             .map((note) => note.id),
-        ).toEqual(["b.md", "c.md", "a.md", "e.md"]);
+        ).toEqual(["e.md", "b.md", "c.md", "a.md"]);
       });
     });
     describe("should filter", () => {
@@ -368,7 +368,7 @@ describe("applyQuery", () => {
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              since: { end: new Date(2) },
+              since: { end: 2 },
             },
             notes,
           )
@@ -382,7 +382,7 @@ describe("applyQuery", () => {
             nullApplyFilterOpts,
             {
               ...nullFilter,
-              since: { start: new Date(2) },
+              since: { start: 2 },
             },
             notes,
           )
@@ -446,13 +446,13 @@ describe("applyQuery", () => {
     });
   });
   describe("event", () => {
-    const dateA = new Date("2020-10-10");
-    const dateB = new Date("2020-10-11");
+    const dateA = 10;
+    const dateB = 11;
     const notes = [
-      { ...nullNote, id: "a.md", event: { start: dateB, end: null } },
-      { ...nullNote, id: "f.md", event: { start: null, end: null } },
-      { ...nullNote, id: "g.md", event: { start: null, end: dateA } },
-      { ...nullNote, id: "h.md", event: { start: null, end: dateB } },
+      { ...nullNote, id: "a.md", event: { start: dateB } },
+      { ...nullNote, id: "f.md", event: {} },
+      { ...nullNote, id: "g.md", event: { end: dateA } },
+      { ...nullNote, id: "h.md", event: { end: dateB } },
       { ...nullNote, id: "i.md" },
     ];
     it("should sort", () => {
@@ -465,14 +465,14 @@ describe("applyQuery", () => {
     const notesB = [
       { ...nullNote, id: "j.md" },
       { ...nullNote, id: "i.md" },
-      { ...nullNote, id: "h.md", event: { start: null, end: dateB } },
-      { ...nullNote, id: "g.md", event: { start: null, end: dateA } },
-      { ...nullNote, id: "f.md", event: { start: null, end: null } },
+      { ...nullNote, id: "h.md", event: { end: dateB } },
+      { ...nullNote, id: "g.md", event: { end: dateA } },
+      { ...nullNote, id: "f.md", event: {} },
       { ...nullNote, id: "e.md", event: { start: dateA, end: dateA } },
       { ...nullNote, id: "d.md", event: { start: dateA, end: dateB } },
       { ...nullNote, id: "c.md", event: { start: dateB, end: dateB } },
       { ...nullNote, id: "b.md", event: { start: dateB, end: dateB } },
-      { ...nullNote, id: "a.md", event: { start: dateB, end: null } },
+      { ...nullNote, id: "a.md", event: { start: dateB } },
     ];
     describe("second sample", () => {
       it("should sort", () => {
@@ -551,10 +551,10 @@ describe("applyQuery", () => {
 });
 describe("since", () => {
   const notes = [
-    { ...nullNote, id: "c.md", since: new Date(2) },
+    { ...nullNote, id: "c.md", since: 2 },
     { ...nullNote, id: "e.md" },
-    { ...nullNote, id: "b.md", since: new Date(3) },
-    { ...nullNote, id: "a.md", since: new Date(1) },
+    { ...nullNote, id: "b.md", since: 3 },
+    { ...nullNote, id: "a.md", since: 1 },
   ];
   describe("should sort", () => {
     test("ascending", () => {
@@ -562,14 +562,14 @@ describe("since", () => {
         applyFilter(nullApplyFilterOpts, nullFilter, notes)
           .notes.sort(getSorter({ field: "since", asc: true }))
           .map((note) => note.id),
-      ).toEqual(["e.md", "a.md", "c.md", "b.md"]);
+      ).toEqual(["a.md", "c.md", "b.md", "e.md"]);
     });
     test("descending", () => {
       expect(
         applyFilter(nullApplyFilterOpts, nullFilter, notes)
           .notes.sort(getSorter({ field: "since", asc: false }))
           .map((note) => note.id),
-      ).toEqual(["b.md", "c.md", "a.md", "e.md"]);
+      ).toEqual(["e.md", "b.md", "c.md", "a.md"]);
     });
   });
   describe("should filter", () => {
@@ -579,7 +579,7 @@ describe("since", () => {
           nullApplyFilterOpts,
           {
             ...nullFilter,
-            since: { end: new Date(2) },
+            since: { end: 2 },
           },
           notes,
         )
@@ -593,7 +593,7 @@ describe("since", () => {
           nullApplyFilterOpts,
           {
             ...nullFilter,
-            since: { start: new Date(2) },
+            since: { start: 2 },
           },
           notes,
         )

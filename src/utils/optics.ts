@@ -1,7 +1,6 @@
 import { oState } from "@/components/store";
 import { RangeField } from "@/core/filters";
-import { DateField, DateRangeField, NumberField } from "@/core/note";
-import { OrderField } from "@/core/sorters";
+import { NumberField } from "@/core/note";
 
 export const neg = (b: boolean) => !b;
 
@@ -57,30 +56,8 @@ export const oRestrictKanbans = oRestrict.prop("kanbans");
 export const getORestictField = (field: "event" | "since" | "until" | "due") =>
   oResults.prop("restrict").prop(field);
 
-export const getOFilterNumberBound = (field: NumberField, start: boolean) =>
-  oFilter.lens(
-    (s) => s[field]?.[start ? "start" : "end"],
-    (s, v) => {
-      let o = s[field] ?? {};
-      let b = s[field]?.[start ? "end" : "start"];
-      if (b !== undefined && v !== undefined) {
-        if (start) {
-          if (v > b) b = undefined;
-        } else {
-          if (v < b) b = undefined;
-        }
-      }
-      if (start) {
-        o = { end: b, start: v };
-      } else {
-        o = { start: b, end: v };
-      }
-      return { ...s, [field]: o };
-    },
-  );
-
-export const getOFilterDateBound = (
-  field: DateField | DateRangeField,
+export const getOFilterRangeBound = (
+  field: RangeField | NumberField,
   start: boolean,
 ) =>
   oFilter.lens(
@@ -104,8 +81,6 @@ export const getOFilterDateBound = (
     },
   );
 
-export const getOFilterBound_ = (field: RangeField, start: boolean) =>
-  oFilter.prop(field as any).prop(start ? "start" : "end");
 export const getOFilterActive = (field: RangeField) =>
   getOFilter(field).lens(Boolean, (_, v) => {
     return v ? {} : undefined;

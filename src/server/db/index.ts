@@ -16,7 +16,7 @@ interface Database {
 function encode(note: INote): INoteDB {
   return {
     id: note.id,
-    mtime: note.mtime.getTime(),
+    mtime: note.mtime,
     payload: JSON.stringify(note),
   };
 }

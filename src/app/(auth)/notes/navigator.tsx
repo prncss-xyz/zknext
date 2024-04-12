@@ -2,13 +2,7 @@
 
 import { LuChevronUp, LuChevronDown, LuCheck } from "react-icons/lu";
 import { Box } from "@/components/box";
-import {
-  DateField,
-  DateRangeField,
-  NumberField,
-  isNumberField,
-  optFields,
-} from "@/core/note";
+import { NumberField, optFields } from "@/core/note";
 import { useMemo } from "react";
 import { OrderField } from "@/core/sorters";
 import { nullQuery } from "@/core";
@@ -23,22 +17,21 @@ import {
   getOTag,
   oQuery,
   oIds,
-  getOFilterActive,
-  getOFilterNumberBound,
-  getOFilterDateBound,
   getORestictField,
   oRestrictKanbans,
   oRestrictTags,
   oSort,
   oView,
   oTags,
+  getOFilterRangeBound,
+  getOFilterActive,
 } from "@/utils/optics";
 import { RangeField } from "@/core/filters";
 import { Input } from "@/components/input";
 import { dateString, numberString } from "@/utils/encodec";
 
 function BoundNumber({ field, start }: { field: NumberField; start: boolean }) {
-  const o = useMemo(() => getOFilterNumberBound(field, start), [field, start]);
+  const o = useMemo(() => getOFilterRangeBound(field, start), [field, start]);
   const [value, setValue] = useMainStore.lens(o);
   return (
     <Input
@@ -58,10 +51,10 @@ function BoundDate({
   field,
   start,
 }: {
-  field: DateField | DateRangeField;
+  field: NumberField | RangeField;
   start: boolean;
 }) {
-  const o = useMemo(() => getOFilterDateBound(field, start), [field, start]);
+  const o = useMemo(() => getOFilterRangeBound(field, start), [field, start]);
   const [value, setValue] = useMainStore.lens(o);
   return (
     <Input
@@ -129,7 +122,7 @@ function OrderSelectorRow({ field }: { field: OrderField }) {
   );
 }
 
-function QuerySelectorRow({ field }: { field: RangeField }) {
+function QuerySelectorNumberRow({ field }: { field: NumberField }) {
   return (
     <Box display="flex" flexDirection="row" gap={5}>
       <QueryCheckBox field={field} />
@@ -139,32 +132,38 @@ function QuerySelectorRow({ field }: { field: RangeField }) {
         <SortSelectorField field={field} asc={false} />
       </Box>
       <Box display="flex" flexDirection="row" gap={2} color="muted">
-        {isNumberField(field) ? (
-          <>
-            <BoundNumber field={field} start={true} />
-            <BoundNumber field={field} start={false} />
-          </>
-        ) : (
-          (field === "mtime" || field === field) && (
-            <>
-              <BoundDate field={field} start={true} />
-              <BoundDate field={field} start={false} />
-            </>
-          )
-        )}
+        <BoundNumber field={field} start={true} />
+        <BoundNumber field={field} start={false} />
       </Box>
     </Box>
   );
 }
 
-function QuerySelectorOptRow({
+function QuerySelectorDateRow({ field }: { field: RangeField | NumberField }) {
+  return (
+    <Box display="flex" flexDirection="row" gap={5}>
+      <QueryCheckBox field={field} />
+      <Box width="fieldWidth">{field}</Box>
+      <Box display="flex" flexDirection="row" gap={2}>
+        <SortSelectorField field={field} asc={true} />
+        <SortSelectorField field={field} asc={false} />
+      </Box>
+      <Box display="flex" flexDirection="row" gap={2} color="muted">
+        <BoundDate field={field} start={true} />
+        <BoundDate field={field} start={false} />
+      </Box>
+    </Box>
+  );
+}
+
+function QuerySelectorOptDateRow({
   field,
 }: {
   field: "event" | "since" | "until" | "due";
 }) {
   const o = useMemo(() => getORestictField(field), [field]);
   const enabled = useMainStore.get(o);
-  return enabled && <QuerySelectorRow field={field} />;
+  return enabled && <QuerySelectorDateRow field={field} />;
 }
 
 function QuerySelector({}: {}) {
@@ -180,12 +179,12 @@ function QuerySelector({}: {}) {
       alignItems="center"
     >
       <OrderSelectorRow field="title" />
-      <QuerySelectorRow field="wordcount" />
-      <QuerySelectorRow field="mtime" />
-      <QuerySelectorOptRow field="event" />
-      <QuerySelectorOptRow field="due" />
-      <QuerySelectorOptRow field="since" />
-      <QuerySelectorOptRow field="until" />
+      <QuerySelectorNumberRow field="wordcount" />
+      <QuerySelectorDateRow field="mtime" />
+      <QuerySelectorOptDateRow field="event" />
+      <QuerySelectorOptDateRow field="due" />
+      <QuerySelectorOptDateRow field="since" />
+      <QuerySelectorOptDateRow field="until" />
     </Box>
   );
 }

@@ -1,26 +1,17 @@
 import { contains, upDirs } from "@/utils/path";
-import { IDateRange, INote } from "./note";
+import { IRange, INote } from "./note";
 
-type IRange0<T> =
-  | {
-      start?: T;
-      end?: T;
-    }
-  | undefined;
-
-export type IRange<T> = T extends IDateRange ? IRange0<Date> : IRange0<T>;
-
-function filterOrder<T>(query: IRange<T>, value: T) {
+function filterOrder(query: IRange | undefined, value: number | undefined) {
   if (!query) return true;
-  if (value === undefined || value === null) return false;
+  if (!value) return false;
   if (query.start && !(value >= query.start)) return false;
   if (query.end && !(value <= query.end)) return false;
   return true;
 }
 
-function filterDateRange(query: IRange<Date>, value: IDateRange | null) {
+function filterRange(query: IRange | undefined, value: IRange | undefined) {
   if (!query) return true;
-  if (value === null) return false;
+  if (!value) return false;
   if (query.start && value.end && query.start > value.end) return false;
   if (query.end && value.start && query.end < value.start) return false;
   return true;
@@ -54,12 +45,12 @@ interface IBaseFilter {
   dir: string;
   view: View;
   tags: string[];
-  wordcount?: IRange<number>;
-  due?: IRange<Date>;
-  mtime?: IRange<Date>;
-  since?: IRange<IDateRange>;
-  until?: IRange<IDateRange>;
-  event?: IRange<IDateRange>;
+  wordcount?: IRange;
+  due?: IRange;
+  mtime?: IRange;
+  since?: IRange;
+  until?: IRange;
+  event?: IRange;
 }
 
 export const nullBaseFilter: IBaseFilter = {
@@ -107,7 +98,7 @@ function filterNote(opts: ApplyFilterOpts, filter: IBaseFilter, note: INote) {
   if (!filterOrder(filter.due, note.due)) return false;
   if (!filterOrder(filter.since, note.since)) return false;
   if (!filterOrder(filter.until, note.until)) return false;
-  if (!filterDateRange(filter.event, note.event)) return false;
+  if (!filterRange(filter.event, note.event)) return false;
   return true;
 }
 
