@@ -58,9 +58,9 @@ COPY --from=build /app /app
 RUN mkdir -p /data
 VOLUME /data
 
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
+COPY main.sh /main.sh
+RUN chmod +x /main.sh
+ENTRYPOINT ["/main.sh"]
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
