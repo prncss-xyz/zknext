@@ -21,7 +21,7 @@ function Entry({ note }: { note: INote }) {
       navigate={activate}
       fontFamily={note.title ? undefined : "monospace"}
     >
-      {note.title ?? note.id}
+      {note.title || note.id}
     </ButtonOpt>
   );
 }
