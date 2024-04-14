@@ -31,6 +31,7 @@ export const RepoType = Symbol.for("Repo");
 export interface ConfigData {
   notebookDir: string;
   cache: string;
+  shouldWatch: boolean;
 }
 export interface IConfig {
   getConfig: () => Promise<ConfigData>;

@@ -98,7 +98,7 @@ export class RepoLive implements IRepo {
       cachedNotes.set(note.id, note);
     }
     const start = Date.now();
-    const { notebookDir } = await this.config.getConfig();
+    const { notebookDir, shouldWatch } = await this.config.getConfig();
     console.log("note directory: %s", notebookDir);
     let deletions = 0;
     const tasks: Promise<number>[] = [];
@@ -111,11 +111,16 @@ export class RepoLive implements IRepo {
     // setup the watcher first, as files can be touched before all notes have been scanned
     // FIXME: as of node v21.7.1 on linux, file or repo deletion triggers an exception
     // cf. https://github.com/nodejs/node/issues/49995
-    watch(notebookDir, { persistent: false, recursive: true }, (_event, id) => {
-      if (id === null) return;
-      if (!this.note.shouldReadFile(id)) return;
-      cb(id);
-    });
+    if (shouldWatch)
+      watch(
+        notebookDir,
+        { persistent: false, recursive: true },
+        (_event, id) => {
+          if (id === null) return;
+          if (!this.note.shouldReadFile(id)) return;
+          cb(id);
+        },
+      );
     // PERF: this is CPU bound (parsing the files), parallalizing file reading results in 8% speed gain
     // still doing it beacause code it is quite readable, however I do not think parallalizing directory iteration
     // worths it

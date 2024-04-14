@@ -10,7 +10,7 @@ function shouldBlock(request: NextRequest) {
 }
 
 export function middleware(request: NextRequest) {
-  if (process.env.ZKNEXT_DEMO !== "ZKNEXT_DEMO" || shouldBlock(request))
+  if (process.env.ZKNEXT_DEMO !== "ZKNEXT_DEMO" && shouldBlock(request))
     return NextResponse.redirect(new URL("/denied", request.url));
 }
 

@@ -17,7 +17,11 @@ import { INote } from "@/core/note";
 @injectable()
 export class ConfigMock implements IConfig {
   async getConfig() {
-    return { notebookDir: "dir", cache: "cacheDir/cache.sqlite3" };
+    return {
+      notebookDir: "dir",
+      cache: "cacheDir/cache.sqlite3",
+      shouldWatch: false,
+    };
   }
 }
 
@@ -74,9 +78,9 @@ describe("notesLive", () => {
       const entries = await notes.getNotes();
       expect(entries.length).toBe(2);
       expect(entries[0].id).toBe("1.md");
-      expect(entries[0].mtime).toEqual(new Date(1));
+      expect(entries[0].mtime).toEqual(1);
       expect(entries[1].id).toBe("a/2.md");
-      expect(entries[1].mtime).toEqual(new Date(2));
+      expect(entries[1].mtime).toEqual(2);
     });
   });
   describe("getNote", () => {

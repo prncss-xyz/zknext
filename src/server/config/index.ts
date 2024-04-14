@@ -12,7 +12,12 @@ async function getConfig_() {
   if (xdgCache === undefined) throw new Error("xdgCache undefined");
   const hash = createHash("md5").update(notebookDir).digest("hex");
   const cache = join(xdgCache, "zknext", hash + ".sqlite3");
-  return { notebookDir, cache };
+  const shouldWatch = true;
+  return {
+    notebookDir,
+    cache,
+    shouldWatch,
+  };
 }
 
 @injectable()

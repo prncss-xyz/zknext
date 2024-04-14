@@ -32,7 +32,7 @@ FROM base
 # Copy built application
 COPY --from=build /app /app
 
-ENV ZKNEXT_DEMO=ZKNEXT_DEMO
+ENV ZKNEXT_DEMO="ZKNEXT_DEMO"
 
 # Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
