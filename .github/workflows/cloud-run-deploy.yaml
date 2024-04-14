@@ -32,6 +32,12 @@ jobs:
         run: |
           gcloud auth configure-docker
 
+      - name: Enable the necessary APIs and enable docker auth
+        run: |-
+          gcloud services enable containerregistry.googleapis.com
+          gcloud services enable run.googleapis.com
+          gcloud --quiet auth configure-docker
+
       - name: Build Docker Image
         run: |
           docker build . -t "gcr.io/${{ vars.GCP_PROJECT_ID }}/${{ vars.DOCKER_IMAGE_NAME }}:latest"
@@ -45,5 +51,5 @@ jobs:
           gcloud run deploy $SERVICE_NAME \
             --image gcr.io/${{ vars.GCP_PROJECT_ID }}/${{ vars.DOCKER_IMAGE_NAME }}:latest \
             --platform managed \
-            --region us-central1 \
+            --region ${{ vars.GCP_REGION }} \
             --allow-unauthenticated
