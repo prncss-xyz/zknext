@@ -20,7 +20,6 @@ export class ConfigMock implements IConfig {
     return {
       notebookDir: "dir",
       cache: "cacheDir/cache.sqlite3",
-      shouldWatch: false,
     };
   }
 }
@@ -55,6 +54,9 @@ function getContainerNotes() {
 
 describe("notesLive", () => {
   beforeAll(() => {
+    vi.mock("node:fs", () => ({
+      watch: () => {},
+    }));
     mock({
       dir: {
         "1.md": mock.file({ content: "# jkl\n\nasdf", mtime: new Date(1) }),
