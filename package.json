@@ -18,7 +18,6 @@
     "test:ui": "vitest --ui"
   },
   "dependencies": {
-    "@fp-ts/optic": "^0.21.0",
     "@types/js-yaml": "^4.0.9",
     "@vanilla-extract/css": "^1.14.2",
     "@vanilla-extract/next-plugin": "^2.4.0",
@@ -52,7 +51,6 @@
     "remark-remove-comments": "^1.0.1",
     "remark-smartypants": "^2.1.0",
     "remark-wiki-link": "^2.0.1",
-    "section-matter": "^1.0.0",
     "the-new-css-reset": "^1.11.2",
     "unified": "^11.0.4",
     "unist-util-remove": "^4.0.0",
@@ -64,7 +62,6 @@
     "zustand": "^4.5.2"
   },
   "devDependencies": {
-    "@flydotio/dockerfile": "^0.5.4",
     "@playwright/test": "^1.43.0",
     "@types/better-sqlite3": "^7.6.9",
     "@types/hast": "^3.0.4",

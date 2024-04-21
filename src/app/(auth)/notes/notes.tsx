@@ -6,12 +6,12 @@ import { ButtonOpt } from "@/components/buttonOpt";
 import { useMainStore } from "@/components/store";
 import {
   oHidden,
-  neg,
   oSorted,
   oHiddenCount,
   oFilteredCount,
   oFocused,
 } from "@/utils/optics";
+import { neg } from "@/utils/functions";
 
 function Entry({ note }: { note: INote }) {
   const [active, activate] = useMainStore.lensActivate(oFocused, note.id);

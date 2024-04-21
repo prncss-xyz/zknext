@@ -1,11 +1,10 @@
 import { oState } from "@/components/store";
 import { RangeField } from "@/core/filters";
 import { NumberField } from "@/core/note";
+import { optic } from "optics-ts";
 
-export const neg = (b: boolean) => !b;
-
-function setElement(x: string) {
-  return function (xs: string[], value: boolean) {
+function setElement<T>(x: T) {
+  return function (xs: T[], value: boolean) {
     const xs_ = xs.filter((x_) => !Object.is(x_, x));
     if (value) {
       xs_.push(x);
@@ -14,10 +13,14 @@ function setElement(x: string) {
     return xs_;
   };
 }
-function isElement(x: string) {
-  return function (xs: string[]) {
+function isElement<T>(x: T) {
+  return function (xs: T[]) {
     return xs.includes(x);
   };
+}
+
+function element<T>(value: T) {
+  return optic<T[]>().lens(isElement(value), setElement(value));
 }
 
 export const oDir = oState.prop("query").prop("filter").prop("dir");
@@ -30,8 +33,9 @@ export const oFocusedIndex = oState.to((s) =>
 );
 export const oQuery = oState.prop("query");
 export const oTags = oQuery.prop("filter").prop("tags");
+
 export function getOTag(tag: string) {
-  return oTags.lens(isElement(tag), setElement(tag));
+  return oTags.compose(element(tag));
 }
 export const oSort = oQuery.prop("sort");
 export const oField = oSort.prop("field");
