@@ -23,7 +23,6 @@ function useInput<A>(
     setEncoded(value_);
   }, []);
   const onBlur = useCallback(() => {
-    if (decoded === undefined) return;
     setValue(decoded);
   }, [decoded, setValue]);
   const onKeyDown = useCallback(

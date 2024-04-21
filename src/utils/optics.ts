@@ -85,3 +85,6 @@ export const getOFilterActive = (field: RangeField) =>
   getOFilter(field).lens(Boolean, (_, v) => {
     return v ? {} : undefined;
   });
+
+export const getOSelectField = (field: "event" | "since" | "until" | "due") =>
+  oState.to((s) => s.results.restrict[field] || !!s.query.filter[field]);

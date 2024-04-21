@@ -17,7 +17,6 @@ import {
   getOTag,
   oQuery,
   oIds,
-  getORestictField,
   oRestrictKanbans,
   oRestrictTags,
   oSort,
@@ -25,6 +24,7 @@ import {
   oTags,
   getOFilterRangeBound,
   getOFilterActive,
+  getOSelectField,
 } from "@/utils/optics";
 import { RangeField } from "@/core/filters";
 import { Input } from "@/components/input";
@@ -161,9 +161,10 @@ function QuerySelectorOptDateRow({
 }: {
   field: "event" | "since" | "until" | "due";
 }) {
-  const o = useMemo(() => getORestictField(field), [field]);
-  const enabled = useMainStore.get(o);
-  return enabled && <QuerySelectorDateRow field={field} />;
+  const active = useMainStore.getter(
+    useMemo(() => getOSelectField(field), [field]),
+  );
+  return active && <QuerySelectorDateRow field={field} />;
 }
 
 function QuerySelector({}: {}) {
@@ -240,7 +241,7 @@ function Views({}: {}) {
   return (
     <Box display="flex" flexDirection="column" gap={5}>
       <NoteViews />
-      <KanbanViews />
+      {/* <KanbanViews /> */}
     </Box>
   );
 }
