@@ -32,7 +32,7 @@ import { dateString, numberString } from "@/utils/encodec";
 
 function BoundNumber({ field, start }: { field: NumberField; start: boolean }) {
   const o = useMemo(() => getOFilterRangeBound(field, start), [field, start]);
-  const [value, setValue] = useMainStore.lens(o);
+  const [value, setValue] = useMainStore.rw(o);
   return (
     <Input
       width="navInputWidth"
@@ -55,7 +55,7 @@ function BoundDate({
   start: boolean;
 }) {
   const o = useMemo(() => getOFilterRangeBound(field, start), [field, start]);
-  const [value, setValue] = useMainStore.lens(o);
+  const [value, setValue] = useMainStore.rw(o);
   return (
     <Input
       width="navInputWidth"
@@ -97,7 +97,7 @@ function SortSelectorField({
   field: OrderField;
   asc: boolean;
 }) {
-  const [active, navigate] = useMainStore.lensActivate(oSort, { asc, field });
+  const [active, navigate] = useMainStore.activate(oSort, { asc, field });
   return (
     <SmallButtonOpt active={active} navigate={navigate}>
       {asc ? <LuChevronUp /> : <LuChevronDown />}
@@ -161,7 +161,7 @@ function QuerySelectorOptDateRow({
 }: {
   field: "event" | "since" | "until" | "due";
 }) {
-  const active = useMainStore.getter(
+  const active = useMainStore.get(
     useMemo(() => getOSelectField(field), [field]),
   );
   return active && <QuerySelectorDateRow field={field} />;
@@ -191,7 +191,7 @@ function QuerySelector({}: {}) {
 }
 
 function Dir({ dir }: { dir: string }) {
-  const [active, navigate] = useMainStore.lensActivate(oDir, dir);
+  const [active, navigate] = useMainStore.activate(oDir, dir);
   if (dir === "") return <Clear active={active} navigate={navigate} />;
   return (
     <RoundedButtonOpt
@@ -233,7 +233,7 @@ function Dirs({}: {}) {
 }
 
 function ClearTags({}: {}) {
-  const [active, navigate] = useMainStore.lensActivate(oTags, []);
+  const [active, navigate] = useMainStore.activate(oTags, []);
   return <Clear active={active} navigate={navigate} />;
 }
 
@@ -247,7 +247,7 @@ function Views({}: {}) {
 }
 
 function KanbanView({ kanban }: { kanban: string }) {
-  const [active, navigate] = useMainStore.lensActivate(oView, {
+  const [active, navigate] = useMainStore.activate(oView, {
     type: "kanban",
     kanban,
   });
@@ -277,7 +277,7 @@ function KanbanViews({}: {}) {
 }
 
 function NoteViews({}: {}) {
-  const [active, navigate] = useMainStore.lensActivate(oView, {
+  const [active, navigate] = useMainStore.activate(oView, {
     type: "notes",
   });
   return (
@@ -315,7 +315,7 @@ function Tags({}: {}) {
 }
 
 function ClearAll({}: {}) {
-  const [active, navigate] = useMainStore.lensActivate(oQuery, nullQuery);
+  const [active, navigate] = useMainStore.activate(oQuery, nullQuery);
   return (
     <ButtonOpt active={active} navigate={navigate}>
       Reset

@@ -2,7 +2,7 @@
 
 import { luLink, luExternalLink, contents } from "./noteContents.css";
 import { Box } from "@/components/box";
-import { ReactNode } from "react";
+import { ReactNode, useCallback } from "react";
 import { LuLink, LuExternalLink } from "react-icons/lu";
 import { HTML } from "@/components/html";
 import { useMainStore } from "@/components/store";
@@ -17,7 +17,7 @@ function InnerLink({
   className?: string;
   children: ReactNode;
 }) {
-  const navigate = useMainStore.setValue(oFocused, target);
+  const navigate = useCallback(() => useMainStore.set(oFocused)(target), [target]);
   return (
     <button onClick={navigate} className={className}>
       {children}

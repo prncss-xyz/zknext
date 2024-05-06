@@ -1,26 +1,28 @@
-import { oState } from "@/components/store";
+import { IState } from "@/components/store";
 import { RangeField } from "@/core/filters";
 import { NumberField } from "@/core/note";
 import { optic } from "optics-ts";
 
-function setElement<T>(x: T) {
+export const oState = optic<IState>();
+
+function setMember<T>(x: T) {
   return function (xs: T[], value: boolean) {
     const xs_ = xs.filter((x_) => !Object.is(x_, x));
     if (value) {
       xs_.push(x);
     }
-    xs_.sort();
+  xs_.sort();
     return xs_;
   };
 }
-function isElement<T>(x: T) {
+function isMember<T>(x: T) {
   return function (xs: T[]) {
     return xs.includes(x);
   };
 }
 
-function element<T>(value: T) {
-  return optic<T[]>().lens(isElement(value), setElement(value));
+function member<T>(value: T) {
+  return optic<T[]>().lens(isMember(value), setMember(value));
 }
 
 export const oDir = oState.prop("query").prop("filter").prop("dir");
@@ -35,7 +37,7 @@ export const oQuery = oState.prop("query");
 export const oTags = oQuery.prop("filter").prop("tags");
 
 export function getOTag(tag: string) {
-  return oTags.compose(element(tag));
+  return oTags.compose(member(tag));
 }
 export const oSort = oQuery.prop("sort");
 export const oField = oSort.prop("field");

@@ -32,12 +32,7 @@ import {
 import { getHTML } from "@/server/actions";
 
 function Dir({ dir }: { dir: string }) {
-  const activate = useMainStore.setValue(oDir, dir);
-  const close = useMainStore.setValue(oFocused, "");
-  const onClick = useCallback(() => {
-    close();
-    activate();
-  }, [activate, close]);
+  const onClick = useMainStore.setWith([oDir, dir], [oFocused, ""]);
   return (
     <Box as="button" fontFamily="monospace" onClick={onClick}>
       {basename(dir)}
@@ -47,12 +42,7 @@ function Dir({ dir }: { dir: string }) {
 
 function Tag({ tag }: { tag: string }) {
   const o = useMemo(() => getOTag(tag), [tag]);
-  const activate = useMainStore.setValue(o, true);
-  const close = useMainStore.setValue(oFocused, "");
-  const onClick = useCallback(() => {
-    close();
-    activate();
-  }, [activate, close]);
+  const onClick = useMainStore.setWith([oFocused, ""], [o, true]);
   return (
     <Box
       as="button"
@@ -72,13 +62,11 @@ function Tag({ tag }: { tag: string }) {
 }
 
 function useOrder<T extends OrderField>(field: T, note: INote) {
-  const activate = useMainStore.setValue(oSort, { field, asc: true });
-  const close = useMainStore.setValue(oFocused, "");
-  const onClick = useCallback(() => {
-    close();
-    activate();
-  }, [activate, close]);
   const value = note[field];
+  const onClick = useMainStore.setWith(
+    [oFocused, ""],
+    [oSort, { field, asc: true }],
+  );
   return [onClick, value] as const;
 }
 
@@ -181,7 +169,7 @@ function ToNote({
   children,
   ...props
 }: { target: string; children: ReactNode } & BoxProps) {
-  const [active, navigate] = useMainStore.lensActivate(oFocused, target);
+  const [active, navigate] = useMainStore.activate(oFocused, target);
   return (
     <ToNoteBox
       as="button"
@@ -210,7 +198,7 @@ function ToNoteOpt({
 
 function Nav({}: {}) {
   const notes = useMainStore.get(oSorted);
-  const index = useMainStore.getter(oFocusedIndex);
+  const index = useMainStore.get(oFocusedIndex);
   const first = notes[0]?.id;
   const prev = notes[index - 1]?.id;
   const next = notes[index + 1]?.id;
@@ -237,9 +225,9 @@ function Nav({}: {}) {
 }
 
 function Note({}: {}) {
-  const close = useMainStore.setValue(oFocused, "");
+  const close = useMainStore.setWith([oFocused, ""]);
   const ref = useClickOutside(close);
-  const note = useMainStore.getter(oFocusedNote);
+  const note = useMainStore.get(oFocusedNote);
   const [html, setHTMLRequest] = useState<string>();
   const id = useMainStore.get(oFocused);
   useEffect(() => {

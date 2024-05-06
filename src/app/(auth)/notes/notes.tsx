@@ -11,10 +11,9 @@ import {
   oFilteredCount,
   oFocused,
 } from "@/utils/optics";
-import { neg } from "@/utils/functions";
 
 function Entry({ note }: { note: INote }) {
-  const [active, activate] = useMainStore.lensActivate(oFocused, note.id);
+  const [active, activate] = useMainStore.activate(oFocused, note.id);
   return (
     <ButtonOpt
       active={active}
@@ -27,7 +26,7 @@ function Entry({ note }: { note: INote }) {
 }
 
 function HiddenButton({}: {}) {
-  const [active, toggle] = useMainStore.lensModify(oHidden, neg);
+  const [active, toggle] = useMainStore.toggle(oHidden);
   const hidden = useMainStore.get(oHiddenCount);
   const text = `${hidden} hidden`;
   if (hidden)
@@ -40,7 +39,7 @@ function HiddenButton({}: {}) {
 }
 
 function Count({}: {}) {
-  const filtered = useMainStore.getter(oFilteredCount);
+  const filtered = useMainStore.get(oFilteredCount);
   return (
     <Box
       display="flex"
