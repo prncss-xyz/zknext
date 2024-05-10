@@ -112,12 +112,12 @@ export function createHooks<S>(
   function activate<A>(
     focus: O.Lens<S, any, A> | O.Equivalence<S, any, A> | O.Iso<S, any, A>,
     value: A,
-    isEqual: (p: any, q: any) => boolean,
+    isEqual?: (p: any, q: any) => boolean,
   ): readonly [boolean, () => void];
   function activate<A>(
     focus: O.Prism<S, any, A> | O.Traversal<S, any, A>,
     value: A | undefined,
-    isEqual: (p: any, q: any) => boolean,
+    isEqual?: (p: any, q: any) => boolean,
   ): readonly [boolean, () => void];
   function activate<A>(
     focus:
@@ -138,29 +138,12 @@ export function createHooks<S>(
     ] as const;
   }
 
-  function toggle(
-    focus:
-      | O.Lens<S, any, boolean>
-      | O.Equivalence<S, any, boolean>
-      | O.Iso<S, any, boolean>
-      | O.Prism<S, any, boolean>,
-  ): readonly [boolean, () => void] {
-    return [
-      useBoundStore((s) => Boolean(valueProducer(focus)(s))),
-      useCallback(
-        () => useBoundStore.setState(updateProducer(focus)((v) => !v)),
-        [focus],
-      ),
-    ] as const;
-  }
-
   return {
     get,
     set,
     setWith,
     rw,
     activate,
-    toggle,
   };
 }
 
@@ -200,11 +183,11 @@ const updateProducer =
       | O.Traversal<S, any, A>,
   ) =>
   (update: SetStateAction<A> | undefined) => {
-    if (isFunction(update)) return O.modify(focus)(update);
     if (update === undefined) {
       if (focus._tag === "Traversal" || focus._tag === "Prism")
         return O.remove(focus);
       return (s: S) => s;
     }
+    if (isFunction(update)) return O.modify(focus)(update);
     return O.set(focus)(update);
   };

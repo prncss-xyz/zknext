@@ -3,7 +3,7 @@
 import { LuChevronUp, LuChevronDown, LuCheck } from "react-icons/lu";
 import { Box } from "@/components/box";
 import { NumberField, optFields } from "@/core/note";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import { OrderField } from "@/core/sorters";
 import { nullQuery } from "@/core";
 import { Clear } from "@/components/clear";
@@ -72,7 +72,8 @@ function BoundDate({
 
 function QueryCheckBox({ field }: { field: RangeField }) {
   const o = useMemo(() => getOFilterActive(field), [field]);
-  const [active, toggle] = useMainStore.toggle(o);
+  const [active, setActive] = useMainStore.rw(o);
+  const toggle = useCallback(() => setActive((v) => !v), [setActive]);
   if (!optFields.includes(field)) return <SmallButtonOpt />;
   return (
     <SmallButtonOpt
@@ -206,7 +207,8 @@ function Dir({ dir }: { dir: string }) {
 
 function Tag({ tag }: { tag: string }) {
   const oTag = useMemo(() => getOTag(tag), [tag]);
-  const [active, toggle] = useMainStore.toggle(oTag);
+  const [active, setActive] = useMainStore.rw(oTag);
+  const toggle = useCallback(() => setActive((v) => !v), [setActive]);
   return (
     <RoundedButtonOpt active={active} toggle={toggle}>
       {tag}

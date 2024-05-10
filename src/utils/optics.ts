@@ -11,7 +11,7 @@ function setMember<T>(x: T) {
     if (value) {
       xs_.push(x);
     }
-  xs_.sort();
+    xs_.sort();
     return xs_;
   };
 }
@@ -21,7 +21,7 @@ function isMember<T>(x: T) {
   };
 }
 
-function member<T>(value: T) {
+function includes<T>(value: T) {
   return optic<T[]>().lens(isMember(value), setMember(value));
 }
 
@@ -37,7 +37,7 @@ export const oQuery = oState.prop("query");
 export const oTags = oQuery.prop("filter").prop("tags");
 
 export function getOTag(tag: string) {
-  return oTags.compose(member(tag));
+  return oTags.compose(includes(tag));
 }
 export const oSort = oQuery.prop("sort");
 export const oField = oSort.prop("field");

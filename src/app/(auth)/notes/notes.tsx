@@ -11,6 +11,7 @@ import {
   oFilteredCount,
   oFocused,
 } from "@/utils/optics";
+import { useCallback } from "react";
 
 function Entry({ note }: { note: INote }) {
   const [active, activate] = useMainStore.activate(oFocused, note.id);
@@ -26,7 +27,8 @@ function Entry({ note }: { note: INote }) {
 }
 
 function HiddenButton({}: {}) {
-  const [active, toggle] = useMainStore.toggle(oHidden);
+  const [active, setActive] = useMainStore.rw(oHidden);
+  const toggle = useCallback(() => setActive((v) => !v), [setActive]);
   const hidden = useMainStore.get(oHiddenCount);
   const text = `${hidden} hidden`;
   if (hidden)
