@@ -1,9 +1,9 @@
-import { createHooks } from "./stores";
 import { create } from "zustand";
 import { nullQuery } from "@/core";
 import { INote } from "@/core/note";
 import { nullFilterResults } from "@/core/filters";
 import { dequal } from "dequal";
+import { withOptics } from "@prncss-xyz/zustand-optics";
 
 export const nullMainStore = {
   focusedNote: "",
@@ -18,4 +18,4 @@ export const initSamples = {};
 
 const useBoundStore = create(() => nullMainStore);
 
-export const useMainStore = createHooks(useBoundStore, dequal);
+export const useMainStore = withOptics(useBoundStore, dequal);
