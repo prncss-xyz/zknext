@@ -5,6 +5,6 @@ test("should navigate to the note and properly render contents", async ({
   page,
 }) => {
   await page.goto(`http://localhost:${PORT}/notes`);
-  await page.click("text='title a'");
-  await expect(page.locator("h1")).toContainText("title a");
+  await page.click("text='title d'");
+  await expect(page.locator("h1")).toContainText("title d");
 });

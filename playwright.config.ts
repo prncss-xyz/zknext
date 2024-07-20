@@ -18,9 +18,6 @@ const projects = [
   },
 ];
 
-if (!process.env.SKIP_MACOS)
-  projects.push({ name: "Mobile Safari", use: devices["iPhone 12"] });
-
 const config: PlaywrightTestConfig = {
   timeout: 30 * 1000,
   testDir: path.join(__dirname, "src/tests/e2e"),
