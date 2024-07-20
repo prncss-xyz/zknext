@@ -4,10 +4,6 @@ This is a small next application I use to visualize and navigate my note collect
 are simply markdown files with optional metadata as a YAML preamble. The app consists of a Next server
 which scans a watches the notes directory and lets it be explored in a structured way.
 
-You can try a read-only instance on [here](https://next-app-project-kakx2xw7fq-nn.a.run.app) (Google Cloud Run)
-
-Access is restricted to localhost (except on demo instance) sparing the need for authentication.
-
 ## Configuration
 
 `ZK_NOTEBOOK_DIR`: contains the notes' directory (this is because I also use [zk](https://github.com/zk-org/zk) language server).
